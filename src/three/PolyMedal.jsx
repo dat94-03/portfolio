@@ -47,19 +47,20 @@ export default function PolyMedal({ position = [0, 0, 0], withBox = true }) {
     const t = state.clock.elapsedTime
     if (!medalRef.current) return
 
-    // Gentle wobble on Y so the medal is always facing near the camera —
-    // no more edge-on moments. Users can override with drag.
-    const wobbleY = Math.sin(t * 0.35) * 0.55  // ±31° amplitude
-    const wobbleX = Math.sin(t * 0.25) * 0.12
+    // At rest, aim the medal's front face straight at the isometric camera
+    // (positioned at ~[9, 5.2, 11] in Scene.jsx). Camera azimuth in XZ:
+    // atan2(9, 11) ≈ 0.686 rad ≈ 39.3°. Add a gentle swing around that.
+    const REST_Y = 0.686
+    const wobbleY = REST_Y + Math.sin(t * 0.35) * 0.4125  // ±16° amplitude
+    const wobbleX = Math.sin(t * 0.25) * 0.09
     const flipY = flipped ? Math.PI : 0
 
     medalRef.current.rotation.y = wobbleY + flipY + drag.current.offsetY
-    medalRef.current.rotation.x = wobbleX + drag.current.offsetX +
-      (hovered ? -mouseTarget.current.y * 0.1 : 0)
+    medalRef.current.rotation.x = wobbleX + drag.current.offsetX
 
-    // Floating bob — medal hovers above the pedestal
-    const lift = hovered ? 0.15 : 0
-    medalRef.current.position.y = Math.sin(t * 0.9) * 0.08 + lift
+    // Floating bob — steady bob only; no hover-lift (used to jump 0.15
+    // up on cursor-over which read as jittery)
+    medalRef.current.position.y = Math.sin(t * 0.9) * 0.08
     if (boxRef.current) {
       boxRef.current.rotation.y = Math.sin(t * 0.2) * 0.04
     }

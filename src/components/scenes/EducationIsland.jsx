@@ -90,10 +90,12 @@ export default function EducationIsland() {
         <KhueVanCac />
       </group>
 
-      {/* Broadleaf trees at the corners of the L (never in the pond area) */}
-      <BroadleafTree position={[-2.6, 0.18, -2.6]} scale={0.9}  seed={2.1} />
-      <BroadleafTree position={[2.6, 0.18, -2.6]}  scale={0.85} seed={2.7} />
-      <BroadleafTree position={[-2.6, 0.18, 2.4]}  scale={0.75} seed={3.3} />
+      {/* Broadleaf trees at the corners of the plot. The relocated tree
+          sits on the back border, 1/3 of the edge length (≈ 2.17 units)
+          from the farthest corner (-HALF, -HALF). */}
+      <BroadleafTree position={[-1.08, 0.18, -2.9]} scale={1.17}  seed={2.1} />
+      <BroadleafTree position={[2.6,   0.18, -2.6]} scale={1.105} seed={2.7} />
+      <BroadleafTree position={[-2.6,  0.18,  2.4]} scale={0.975} seed={3.3} />
 
       {/* Ground-level decor — flowers + grass tufts scattered on the L */}
       <GroundDecor />
@@ -165,9 +167,9 @@ function GrassField() {
       { x0: -2.3, x1: -0.7, z0: -2.3, z1: -0.7 },                     // pedestal footprint
       { x0: 0.7,  x1: 2.3,  z0: -2.3, z1: -0.7 },                     // Khuê Văn Các footprint
       // Tree footprints
-      { x0: -3.0, x1: -2.2, z0: -3.0, z1: -2.2 },
-      { x0: 2.2,  x1: 3.0,  z0: -3.0, z1: -2.2 },
-      { x0: -3.0, x1: -2.2, z0: 2.0,  z1: 2.8  },
+      { x0: -1.5,  x1: -0.7, z0: -3.25, z1: -2.4 }, // relocated tree along back edge
+      { x0: 2.2,   x1: 3.0,  z0: -3.0,  z1: -2.2 },
+      { x0: -3.0,  x1: -2.2, z0: 2.0,   z1: 2.8  },
     ],
     y: 0.28,
     seed: 12345,

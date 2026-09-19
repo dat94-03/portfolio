@@ -11,250 +11,145 @@ import { SOCIALS } from '../../data/socials.js'
 import { Icon } from '../ui/Icons.jsx'
 
 /**
- * Contact Island — cyberpunk signal beacon.
+ * Contact Island — hot-air balloons drifting over a rocky brown mountain.
  *
- * A dark metallic platform with neon-grid tiles and a central obelisk
- * antenna. Social-icon holograms orbit slowly around the antenna at
- * varying altitudes; each hologram is a real anchor tag (via drei
- * <Html transform>) so a click opens the linked profile in a new tab.
+ * Mountain is shoved into the back-left corner (farthest from the
+ * isometric camera) and shaped asymmetrically — no perfect cones. Rest
+ * of the plot is open ground so the balloons breathe. Icons are painted
+ * onto the balloon canvas via screen-space HTML anchors: no chip, no
+ * background, just the glyph glowing on the envelope.
  */
 
 const SIZE = 6.5
 const HALF = SIZE / 2
 
-const NEON_MAGENTA = '#ff2bd6'
-const NEON_CYAN    = '#12e6f0'
-const NEON_PURPLE  = '#7f4dff'
+// Warm sunset palette so each balloon reads distinct without clashing.
+const BALLOON_TINTS = ['#e5563d', '#f2a03d', '#4ecdc4', '#e93f8f']
 
 export default function ContactIsland() {
   return (
     <FloatingRig seed={7}>
-      {/* Dark tech-block foundation */}
+      {/* Rocky brown-mountain foundation */}
       <IslandFoundation
         width={SIZE}
         depth={SIZE}
         layers={[
-          { color: '#0a0d14', height: 0.6 },
-          { color: '#141824', height: 0.5 },
-          { color: '#1a1f2e', height: 0.45 },
-          { color: '#252c40', height: 0.35 },
+          { color: '#3a2418', height: 0.6 },   // deep bedrock
+          { color: '#5a3c26', height: 0.5 },   // rust rock
+          { color: '#7c5836', height: 0.45 },  // sandstone
+          { color: '#8f6c46', height: 0.35 },  // dusty tan
         ]}
       />
 
-      {/* Neon-grid tile plate on top */}
-      <NeonGridTop />
+      {/* Ground plate on top of the foundation */}
+      <GroundTop />
 
-      {/* Neon strip lights running along the top edges */}
-      <NeonEdges />
+      {/* Three great pyramids spread along the plot's diagonal */}
+      <GreatPyramids />
 
-      {/* Central obelisk antenna with rotating rings & pulsing tip */}
-      <group position={[0, 0.28, 0]}>
-        <CentralAntenna />
-      </group>
+      {/* Hot-air balloons drifting above the plot */}
+      <BalloonFleet />
 
-      {/* Floating clickable social holograms orbiting the antenna */}
-      <OrbitingSocials />
-
-      {/* Small holo pylons at the corners */}
-      <HoloPylon position={[-2.6, 0.28, -2.6]} tint={NEON_MAGENTA} />
-      <HoloPylon position={[ 2.6, 0.28, -2.6]} tint={NEON_CYAN} />
-      <HoloPylon position={[-2.6, 0.28,  2.6]} tint={NEON_CYAN} />
-      <HoloPylon position={[ 2.6, 0.28,  2.6]} tint={NEON_MAGENTA} />
-
-      {/* Neon accent lighting */}
-      <pointLight position={[0, 4, 0]}    intensity={1.6} color={NEON_CYAN}    distance={12} />
-      <pointLight position={[-3, 2, -3]}  intensity={0.9} color={NEON_MAGENTA} distance={7} />
-      <pointLight position={[3, 2, 3]}    intensity={0.9} color={NEON_MAGENTA} distance={7} />
-      <pointLight position={[3, 2, -3]}   intensity={0.7} color={NEON_PURPLE}  distance={6} />
-      <pointLight position={[-3, 2, 3]}   intensity={0.7} color={NEON_PURPLE}  distance={6} />
+      {/* Warm sunset accent lights */}
+      <pointLight position={[3, 4, 2]}    intensity={1.2} color="#ffb266" distance={12} />
+      <pointLight position={[-3, 3, -2]}  intensity={0.7} color="#ff8a5b" distance={8} />
+      <pointLight position={[0, 6, 0]}    intensity={0.8} color="#fff2d4" distance={10} />
     </FloatingRig>
   )
 }
 
 /* ------------------------------------------------------------------ *
- * Neon-grid tile plate — a dark metal top with a grid of thin
- * emissive lines (cyan) drawn on it.
+ * Ground top — dusty tan slab covering the whole plot
  * ------------------------------------------------------------------ */
-function NeonGridTop() {
-  const lineCount = 8
-  const step = SIZE / lineCount
-
-  const lines = []
-  for (let i = 0; i <= lineCount; i++) {
-    const p = -HALF + i * step
-    // Horizontal (along X)
-    lines.push({ key: `x${i}`, pos: [0, 0.12, p], size: [SIZE, 0.012, 0.02] })
-    // Vertical (along Z)
-    lines.push({ key: `z${i}`, pos: [p, 0.12, 0], size: [0.02, 0.012, SIZE] })
-  }
-
+function GroundTop() {
   return (
     <group position={[0, 0.09, 0]}>
-      {/* Base metal plate */}
       <mesh receiveShadow castShadow>
         <boxGeometry args={[SIZE, 0.18, SIZE]} />
-        <meshStandardMaterial color={'#161b28'} roughness={0.5} metalness={0.4} flatShading />
+        <meshStandardMaterial color={'#8f6c46'} roughness={0.95} flatShading />
       </mesh>
-      {/* Slightly-brighter inner tile */}
       <mesh position={[0, 0.095, 0]}>
         <boxGeometry args={[SIZE - 0.2, 0.02, SIZE - 0.2]} />
-        <meshStandardMaterial color={'#1e2436'} roughness={0.5} metalness={0.4} flatShading />
+        <meshStandardMaterial color={'#a68256'} roughness={0.95} flatShading />
       </mesh>
-      {/* Emissive neon grid lines */}
-      {lines.map((l) => (
-        <mesh key={l.key} position={l.pos}>
-          <boxGeometry args={l.size} />
-          <meshStandardMaterial
-            color={NEON_CYAN}
-            emissive={NEON_CYAN}
-            emissiveIntensity={1.4}
-            toneMapped={false}
-            flatShading
-          />
-        </mesh>
-      ))}
     </group>
   )
 }
 
 /* ------------------------------------------------------------------ *
- * Neon edge strips — glowing magenta lines wrapping the top of the
- * platform's foundation for that circuit-board silhouette.
+ * Three great pyramids — Minecraft/step-pyramid style, built from
+ * stacked square blocks that get one tier smaller each level up.
+ * Arranged along the plot's front-left → back-right diagonal.
  * ------------------------------------------------------------------ */
-function NeonEdges() {
-  const edgeY = 0.18
-  const edges = [
-    { pos: [0,        edgeY, -HALF], size: [SIZE, 0.03, 0.03] },
-    { pos: [0,        edgeY,  HALF], size: [SIZE, 0.03, 0.03] },
-    { pos: [-HALF,    edgeY, 0],     size: [0.03, 0.03, SIZE] },
-    { pos: [ HALF,    edgeY, 0],     size: [0.03, 0.03, SIZE] },
+function GreatPyramids() {
+  return (
+    <group position={[0, 0.19, 0]}>
+      {/* Kept fine-grained (many layers) but each block is smaller in
+          world units, so the three pyramids don't touch each other. */}
+      <BlockPyramid position={[2.1,  0, -2.1]} tiers={44} blockSize={0.05} rot={0.05} />
+      <BlockPyramid position={[0.0,  0,  0.0]} tiers={36} blockSize={0.05} rot={-0.03} />
+      <BlockPyramid position={[-2.2, 0,  2.2]} tiers={28} blockSize={0.05} rot={0.08} />
+    </group>
+  )
+}
+
+/**
+ * Step pyramid built from progressively-smaller stacked box tiers.
+ * Each tier is 1 block tall; the base is `tiers * blockSize` wide and
+ * shrinks by 1 block-width per side each level up. Alternating tier
+ * tints hint at the block boundaries in silhouette.
+ */
+function BlockPyramid({ position, tiers = 9, blockSize = 0.3, rot = 0 }) {
+  const items = []
+  for (let i = 0; i < tiers; i++) {
+    const side = (tiers - i) * blockSize
+    const y = (i + 0.5) * blockSize
+    items.push({ side, y, i })
+  }
+  return (
+    <group position={position} rotation={[0, rot, 0]}>
+      {items.map(({ side, y, i }) => (
+        <mesh key={i} position={[0, y, 0]} castShadow receiveShadow>
+          <boxGeometry args={[side, blockSize, side]} />
+          <meshStandardMaterial
+            color={i % 2 === 0 ? '#c9985a' : '#dfae74'}
+            roughness={0.95}
+            flatShading
+          />
+        </mesh>
+      ))}
+      {/* Small dark entrance block at the base front */}
+      <mesh position={[0, blockSize * 0.5, (tiers * blockSize) / 2 + 0.01]}>
+        <boxGeometry args={[blockSize * 0.9, blockSize * 0.7, 0.02]} />
+        <meshStandardMaterial color={'#2a1c10'} roughness={0.95} flatShading />
+      </mesh>
+    </group>
+  )
+}
+
+
+/* ------------------------------------------------------------------ *
+ * Balloon fleet — one hot-air balloon per social. Layout floats them
+ * above the front-right side of the plot (away from the mountain).
+ * ------------------------------------------------------------------ */
+function BalloonFleet() {
+  const layout = [
+    { pos: [-2.8, 2.6, -1.8], drift: 0    },   // back-left
+    { pos: [ 2.6, 3.0, -1.6], drift: 0.9 },   // back-right
+    { pos: [-2.6, 2.2,  1.8], drift: 1.6 },   // front-left
+    { pos: [ 2.8, 2.4,  1.8], drift: 2.3 },   // front-right
   ]
   return (
     <group>
-      {edges.map((e, i) => (
-        <mesh key={i} position={e.pos}>
-          <boxGeometry args={e.size} />
-          <meshStandardMaterial
-            color={NEON_MAGENTA}
-            emissive={NEON_MAGENTA}
-            emissiveIntensity={1.6}
-            toneMapped={false}
-            flatShading
-          />
-        </mesh>
-      ))}
-    </group>
-  )
-}
-
-/* ------------------------------------------------------------------ *
- * Central antenna — dark obelisk with three glowing rings that spin,
- * capped with a pulsing beacon at the tip.
- * ------------------------------------------------------------------ */
-function CentralAntenna() {
-  const ringsRef = useRef()
-  const beaconRef = useRef()
-  useFrame((state) => {
-    const t = state.clock.elapsedTime
-    if (ringsRef.current) ringsRef.current.rotation.y = t * 0.8
-    if (beaconRef.current) {
-      beaconRef.current.material.emissiveIntensity = 2.0 + Math.sin(t * 3) * 0.6
-    }
-  })
-  return (
-    <group>
-      {/* Broad plinth */}
-      <mesh position={[0, 0.12, 0]} castShadow receiveShadow>
-        <cylinderGeometry args={[0.9, 1.05, 0.24, 8]} />
-        <meshStandardMaterial color={'#181d2c'} roughness={0.55} metalness={0.5} flatShading />
-      </mesh>
-      {/* Tapered obelisk */}
-      <mesh position={[0, 1.4, 0]} castShadow>
-        <cylinderGeometry args={[0.06, 0.32, 2.4, 5]} />
-        <meshStandardMaterial color={'#1c2337'} roughness={0.4} metalness={0.6} flatShading />
-      </mesh>
-      {/* Emissive stripe running up the obelisk */}
-      <mesh position={[0, 1.4, 0.14]}>
-        <boxGeometry args={[0.05, 2.0, 0.01]} />
-        <meshStandardMaterial
-          color={NEON_CYAN}
-          emissive={NEON_CYAN}
-          emissiveIntensity={1.6}
-          toneMapped={false}
-          flatShading
-        />
-      </mesh>
-
-      {/* Three counter-rotating neon rings */}
-      <group ref={ringsRef} position={[0, 1.2, 0]}>
-        {[
-          { r: 1.0, color: NEON_MAGENTA, y: 0,    tilt: 0.2  },
-          { r: 0.8, color: NEON_CYAN,    y: 0.4,  tilt: -0.5 },
-          { r: 1.2, color: NEON_PURPLE,  y: -0.3, tilt: 0.6  },
-        ].map((r, i) => (
-          <mesh
-            key={i}
-            position={[0, r.y, 0]}
-            rotation={[Math.PI / 2 + r.tilt, 0, 0]}
-          >
-            <torusGeometry args={[r.r, 0.02, 6, 48]} />
-            <meshStandardMaterial
-              color={r.color}
-              emissive={r.color}
-              emissiveIntensity={1.5}
-              toneMapped={false}
-              flatShading
-            />
-          </mesh>
-        ))}
-      </group>
-
-      {/* Pulsing beacon at the tip */}
-      <mesh ref={beaconRef} position={[0, 2.65, 0]}>
-        <icosahedronGeometry args={[0.16, 0]} />
-        <meshStandardMaterial
-          color={NEON_CYAN}
-          emissive={NEON_CYAN}
-          emissiveIntensity={2.0}
-          toneMapped={false}
-          flatShading
-        />
-      </mesh>
-      {/* Beacon halo */}
-      <mesh position={[0, 2.65, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-        <ringGeometry args={[0.28, 0.36, 32]} />
-        <meshBasicMaterial color={NEON_CYAN} transparent opacity={0.4} toneMapped={false} />
-      </mesh>
-    </group>
-  )
-}
-
-/* ------------------------------------------------------------------ *
- * Orbiting social holograms — each social is a clickable holo-panel
- * that opens its URL in a new tab. The whole rig rotates slowly around
- * the central antenna; each panel bobs with its own phase.
- * ------------------------------------------------------------------ */
-function OrbitingSocials() {
-  const groupRef = useRef()
-  useFrame((state) => {
-    if (!groupRef.current) return
-    groupRef.current.rotation.y = state.clock.elapsedTime * 0.12
-  })
-
-  const count = SOCIALS.length
-  return (
-    <group ref={groupRef} position={[0, 0.36, 0]}>
       {SOCIALS.map((s, i) => {
-        const angle = (i / count) * Math.PI * 2
-        // Alternate radius + altitude for a "constellation" spread
-        const radius   = 2.2 + (i % 2 === 0 ? 0.15 : -0.15)
-        const altitude = 1.4 + ((i * 0.35) % 1.2)
+        const l = layout[i % layout.length]
         return (
-          <SocialHolo
+          <Balloon
             key={s.id}
             social={s}
-            position={[Math.cos(angle) * radius, altitude, Math.sin(angle) * radius]}
-            phase={i * 0.7}
+            basePos={l.pos}
+            phase={l.drift}
+            tint={BALLOON_TINTS[i % BALLOON_TINTS.length]}
           />
         )
       })}
@@ -262,93 +157,81 @@ function OrbitingSocials() {
   )
 }
 
-function SocialHolo({ social, position, phase }) {
-  const ref = useRef()
+function Balloon({ social, basePos, phase, tint }) {
+  const groupRef = useRef()
   useFrame((state) => {
-    if (!ref.current) return
+    if (!groupRef.current) return
     const t = state.clock.elapsedTime
-    ref.current.position.y = position[1] + Math.sin(t * 1.4 + phase) * 0.08
-    // Counter-rotate against the parent's rotation so panels stay
-    // roughly camera-facing (crude billboard — good enough for the vibe)
-    ref.current.rotation.y = -t * 0.12
+    groupRef.current.position.y = basePos[1] + Math.sin(t * 0.6 + phase) * 0.14
+    groupRef.current.position.x = basePos[0] + Math.sin(t * 0.3 + phase) * 0.08
+    groupRef.current.rotation.z = Math.sin(t * 0.4 + phase) * 0.04
   })
 
   const disabled = social.url === '#'
+  const isMailto = social.url.startsWith('mailto:')
+
   return (
-    <group ref={ref} position={position}>
-      {/* Small emissive stem beneath the panel — a "holo emitter" */}
-      <mesh position={[0, -0.25, 0]}>
-        <cylinderGeometry args={[0.03, 0.05, 0.14, 6]} />
-        <meshStandardMaterial
-          color={NEON_CYAN}
-          emissive={NEON_CYAN}
-          emissiveIntensity={1.2}
-          toneMapped={false}
-          flatShading
-        />
+    <group ref={groupRef} position={basePos}>
+      {/* Envelope — chunky low-poly sphere */}
+      <mesh castShadow>
+        <sphereGeometry args={[0.7, 10, 8]} />
+        <meshStandardMaterial color={tint} roughness={0.6} flatShading />
       </mesh>
-      {/* Emitter base disc */}
-      <mesh position={[0, -0.33, 0]}>
-        <cylinderGeometry args={[0.09, 0.09, 0.02, 12]} />
-        <meshStandardMaterial color={'#242a3d'} roughness={0.5} metalness={0.6} flatShading />
+      {/* Contrast stripe wrapping the envelope's equator */}
+      <mesh>
+        <sphereGeometry args={[0.702, 10, 8, 0, Math.PI * 2, Math.PI * 0.42, Math.PI * 0.16]} />
+        <meshStandardMaterial color={'#fff4d4'} roughness={0.7} flatShading />
+      </mesh>
+      {/* Bottom collar */}
+      <mesh position={[0, -0.62, 0]}>
+        <cylinderGeometry args={[0.22, 0.14, 0.14, 8]} />
+        <meshStandardMaterial color={'#8b5a30'} roughness={0.85} flatShading />
+      </mesh>
+      {/* Ropes — four thin cylinders from collar to basket */}
+      {[
+        [ 0.12, 0, 0.12],
+        [-0.12, 0, 0.12],
+        [ 0.12, 0,-0.12],
+        [-0.12, 0,-0.12],
+      ].map((r, i) => (
+        <mesh key={i} position={[r[0], -0.9, r[2]]}>
+          <cylinderGeometry args={[0.015, 0.015, 0.35, 4]} />
+          <meshStandardMaterial color={'#3d2f22'} roughness={0.95} flatShading />
+        </mesh>
+      ))}
+      {/* Basket — small brown wicker box */}
+      <mesh position={[0, -1.14, 0]} castShadow>
+        <boxGeometry args={[0.32, 0.22, 0.32]} />
+        <meshStandardMaterial color={'#a06835'} roughness={0.85} flatShading />
+      </mesh>
+      {/* Basket lip */}
+      <mesh position={[0, -1.03, 0]}>
+        <boxGeometry args={[0.36, 0.05, 0.36]} />
+        <meshStandardMaterial color={'#c9945a'} roughness={0.85} flatShading />
       </mesh>
 
-      {/* The clickable holo panel — real HTML anchor via drei Html */}
+      {/* Social icon — screen-space overlay pinned to the balloon's
+          centre. No chip background: the glyph itself sits on the
+          envelope canvas with a soft white glow. */}
       <Html
-        transform
+        center
         occlude={false}
-        distanceFactor={5}
+        position={[0, 0.05, 0]}
         pointerEvents="auto"
         style={{ pointerEvents: 'auto' }}
       >
         <a
           href={disabled ? undefined : social.url}
-          target={social.url.startsWith('mailto:') ? undefined : '_blank'}
-          rel={social.url.startsWith('mailto:') ? undefined : 'noreferrer'}
-          className={`cyber-icon ${disabled ? 'disabled' : ''}`}
+          target={isMailto ? undefined : '_blank'}
+          rel={isMailto ? undefined : 'noreferrer'}
+          className={`balloon-icon balloon-icon--${social.id} ${disabled ? 'disabled' : ''}`}
           title={social.label}
           onClick={(e) => { if (disabled) e.preventDefault() }}
         >
           <Icon name={social.icon} />
-          <span className="cyber-icon-label">{social.label}</span>
+          <span className="balloon-label">{social.label}</span>
         </a>
       </Html>
-    </group>
-  )
-}
-
-/* ------------------------------------------------------------------ *
- * Holo pylons — small corner totems that just add cyberpunk decor.
- * Each is a short obelisk topped with a pulsing neon cube.
- * ------------------------------------------------------------------ */
-function HoloPylon({ position, tint }) {
-  const gemRef = useRef()
-  useFrame((state) => {
-    if (!gemRef.current) return
-    const t = state.clock.elapsedTime
-    gemRef.current.material.emissiveIntensity = 1.6 + Math.sin(t * 2.5 + position[0]) * 0.5
-    gemRef.current.rotation.y = t * 1.2
-  })
-  return (
-    <group position={position}>
-      <mesh position={[0, 0.15, 0]} castShadow receiveShadow>
-        <boxGeometry args={[0.34, 0.3, 0.34]} />
-        <meshStandardMaterial color={'#181d2c'} roughness={0.5} metalness={0.6} flatShading />
-      </mesh>
-      <mesh position={[0, 0.5, 0]} castShadow>
-        <boxGeometry args={[0.18, 0.4, 0.18]} />
-        <meshStandardMaterial color={'#1c2337'} roughness={0.4} metalness={0.7} flatShading />
-      </mesh>
-      <mesh ref={gemRef} position={[0, 0.85, 0]}>
-        <boxGeometry args={[0.18, 0.18, 0.18]} />
-        <meshStandardMaterial
-          color={tint}
-          emissive={tint}
-          emissiveIntensity={1.6}
-          toneMapped={false}
-          flatShading
-        />
-      </mesh>
     </group>
   )
 }

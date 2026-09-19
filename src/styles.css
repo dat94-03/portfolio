@@ -449,7 +449,7 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
 }
 .nav-arrow.disabled { opacity: 0.35; cursor: default; }
 .nav-arrow.left  { left: 28px; }
-.nav-arrow.right { right: 28px; }
+.nav-arrow.right { right: 90px; }  /* pulled inward so it clears the SocialDock at the right edge */
 .nav-arrow svg { width: 26px; height: 26px; }
 
 /* ------------------------------------------------------------------ *
@@ -594,8 +594,126 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
 }
 
 /* ------------------------------------------------------------------ *
+ * Balloon social icons — small round white chip pinned to each hot-air
+ * balloon on the Contact island. Native anchor so clicks open the URL.
+ * ------------------------------------------------------------------ */
+.balloon-icon {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  color: #fff8e6;
+  text-decoration: none;
+  cursor: pointer;
+  user-select: none;
+  background: transparent;
+  transition: transform 0.2s ease, filter 0.2s ease;
+}
+.balloon-icon svg {
+  width: 40px; height: 40px;
+  /* Soft dark outline + warm glow so the glyph reads as painted onto
+     the balloon canvas, regardless of the envelope's tint. */
+  filter:
+    drop-shadow(0 0 4px rgba(0, 0, 0, 0.5))
+    drop-shadow(0 1px 1px rgba(0, 0, 0, 0.6));
+  transition: filter 0.2s ease;
+}
+/* Facebook and Email glyphs read visually smaller than github/linkedin
+ * at the same box size, so give them a 1.15× bump. */
+.balloon-icon--facebook svg,
+.balloon-icon--email svg { width: 46px; height: 46px; }
+.balloon-icon .balloon-label {
+  position: absolute;
+  top: 62px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: #fff4d4;
+  background: rgba(20, 18, 14, 0.85);
+  padding: 4px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+.balloon-icon:hover {
+  transform: scale(1.15);
+}
+.balloon-icon:hover svg {
+  filter:
+    drop-shadow(0 0 8px rgba(255, 240, 180, 0.9))
+    drop-shadow(0 1px 1px rgba(0, 0, 0, 0.6));
+}
+.balloon-icon:hover .balloon-label { opacity: 1; }
+.balloon-icon.disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  filter: grayscale(0.5);
+}
+.balloon-icon.disabled:hover { transform: none; }
+
+/* ------------------------------------------------------------------ *
+ * Standee-kiosk social icons — rendered as drei <Html transform> anchor
+ * tags on the Contact island's tall neon screens. The kiosks are fixed
+ * to the platform, so clicks are easy to hit.
+ * ------------------------------------------------------------------ */
+.standee-icon {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 72px; height: 72px;
+  color: #ffffff;
+  text-decoration: none;
+  cursor: pointer;
+  user-select: none;
+  transition: transform 0.2s ease, filter 0.2s ease;
+  box-sizing: border-box;
+}
+.standee-icon svg {
+  width: 46px; height: 46px;
+  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.6));
+  transition: filter 0.2s ease;
+}
+.standee-icon .standee-label {
+  position: absolute;
+  bottom: -22px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  font-weight: 700;
+  text-shadow: 0 0 6px rgba(0, 0, 0, 0.9);
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+}
+.standee-icon:hover .standee-label { opacity: 1; }
+.standee-icon:hover {
+  transform: translateY(-6px);
+}
+.standee-icon:hover svg {
+  filter: drop-shadow(0 0 22px rgba(255, 255, 255, 0.95));
+}
+.standee-icon.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  filter: grayscale(0.5);
+}
+.standee-icon.disabled:hover { transform: none; }
+
+/* ------------------------------------------------------------------ *
  * Cyberpunk floating social icons — rendered as drei <Html transform>
  * panels on the Contact island. Native anchors so clicks open the URL.
+ * (Kept for backward compat; the Contact island uses .standee-icon now.)
  * ------------------------------------------------------------------ */
 .cyber-icon {
   position: relative;
@@ -807,16 +925,24 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
   border-radius: 4px;
 }
 
-/* Avatar on the right side of the code area */
+/* Avatar on the right side of the code area — clean circular photo */
 .term-avatar {
   position: absolute;
   right: 28px; top: 28px;
   width: 220px; height: 220px;
   border-radius: 50%;
   overflow: hidden;
-  background: #313244;
+  background: #1a1c25;
 }
-.term-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.term-avatar img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+  /* Zoom in on the person so the transparent margins around the source
+     PNG's inner circle get cropped out of the visible ring */
+  transform: scale(1.22);
+  transform-origin: center 42%;
+}
 .term-avatar .initials {
   width: 100%; height: 100%;
   display: grid; place-items: center;

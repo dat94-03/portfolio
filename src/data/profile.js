@@ -38,7 +38,7 @@ export const STORY = {
   hero: {
     eyebrow: '// initialising',
     title: 'Hi, I\'m David.',
-    body: 'DevOps engineer. Six years of running international customer platforms — and I get out of bed for problems that live at the edge of a thousand AWS accounts.',
+    body: 'DevOps/cloud engineer. I build and run international customer platforms — and I get out of bed for problems that live at the edge of a thousand AWS accounts.',
     details: [
       'Currently on the DevOps / Cloud team at FPT Software, running enterprise AWS Landing Zones for customers in Germany, France, and Singapore.',
       'I love the quiet parts of the job — SCPs that keep 1,000 accounts honest, AFT pipelines that turn account onboarding into a coffee-break task, GitHub Actions matrices that make cross-region rollouts a non-event.',
@@ -50,9 +50,9 @@ export const STORY = {
     terminalLines: [
       { kind: 'comment', text: '#!/bin/bash' },
       { kind: 'blank',   text: '' },
-      { kind: 'export',  text: 'export USER="David Lo"' },
+      { kind: 'export',  text: 'export USER="Lo Hoang Tien Dat - David"' },
       { kind: 'blank',   text: '' },
-      { kind: 'echo',    text: 'echo "$USER — I ship cloud platforms that thousand-account fleets live in."' },
+      { kind: 'echo',    text: 'echo "$USER — I build reliable cloud platforms that make developers\' lives easier."' },
     ],
   },
   about: {

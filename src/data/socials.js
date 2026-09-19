@@ -15,40 +15,10 @@ export const SOCIALS = [
     icon: 'linkedin',
   },
   {
-    id: 'x',
-    label: 'X / Twitter',
-    url: '#', // TODO: add profile URL
-    icon: 'x',
-  },
-  {
     id: 'facebook',
     label: 'Facebook',
-    url: '#', // TODO
+    url: 'https://www.facebook.com/dat.94.03',
     icon: 'facebook',
-  },
-  {
-    id: 'instagram',
-    label: 'Instagram',
-    url: '#', // TODO
-    icon: 'instagram',
-  },
-  {
-    id: 'reddit',
-    label: 'Reddit',
-    url: '#', // TODO
-    icon: 'reddit',
-  },
-  {
-    id: 'discord',
-    label: 'Discord',
-    url: '#', // TODO: add invite / profile
-    icon: 'discord',
-  },
-  {
-    id: 'telegram',
-    label: 'Telegram',
-    url: '#', // TODO
-    icon: 'telegram',
   },
   {
     id: 'email',
