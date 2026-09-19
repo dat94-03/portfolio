@@ -266,7 +266,7 @@ function Sidewalks() {
  * so the sign reads as physical corporate signage, not a decal.
  * ------------------------------------------------------------------ */
 function FptLogoBillboard({ position = [0, 0, 0], rotation = [0, 0, 0], size = 0.95 }) {
-  const texture = useTexture('/images/fpt-software.png')
+  const texture = useTexture(`${import.meta.env.BASE_URL || '/'}images/fpt-software.png`)
   return (
     <group position={position} rotation={rotation}>
       {/* Deep backing plate — reads as the sign's back frame */}

@@ -21,8 +21,12 @@ import * as THREE from 'three'
  *        `NotoSans-Bold.woff` (Latin)
  */
 
-const FONT_VN = '/fonts/NotoSans-Vietnamese-Bold.woff'
-const FONT_EN = '/fonts/NotoSans-Bold.woff'
+// Base-aware font paths so they resolve under Vite's base (dev '/' /
+// GitHub Pages project-site '/portfolio/'). Runtime string literals
+// aren't rewritten by Vite, so we must prefix manually.
+const BASE = import.meta.env.BASE_URL || '/'
+const FONT_VN = `${BASE}fonts/NotoSans-Vietnamese-Bold.woff`
+const FONT_EN = `${BASE}fonts/NotoSans-Bold.woff`
 
 const GOLD_LIGHT = '#f6d47a'
 const GOLD_MID   = '#e0a94a'
@@ -499,7 +503,7 @@ function RibbonBanner({ text, position = [0, 0, 0], width = 0.5, height = 0.14 }
         anchorX="center"
         anchorY="middle"
         letterSpacing={0.05}
-        font="/fonts/NotoSans-Bold.woff"
+        font={FONT_EN}
       >
         {text}
       </Text>

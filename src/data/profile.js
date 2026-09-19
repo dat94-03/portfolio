@@ -2,6 +2,11 @@
 // resume is the source of truth for facts; this file is the source of
 // truth for how those facts are told.
 
+// Prefix public-folder paths with Vite's BASE_URL so images resolve
+// correctly under both dev ('/') and project-site prod ('/portfolio/').
+const BASE = import.meta.env.BASE_URL || '/'
+const img = (p) => `${BASE}${p.replace(/^\//, '')}`
+
 export const PROFILE = {
   name: 'Lo Hoang Tien Dat',
   alias: 'David',
@@ -10,7 +15,7 @@ export const PROFILE = {
   tagline: 'I build landing zones that thousand-account fleets can live inside.',
   email: 'tiendat942003@gmail.com',
   phone: '+84 0332996144',
-  avatar: '/images/avatar.png', // placeholder — swap later
+  avatar: img('/images/avatar.png'),
 }
 
 // The six scroll-stops. Each corresponds to a scene component in <Scene />.
@@ -39,8 +44,8 @@ export const STORY = {
       'I love the quiet parts of the job — SCPs that keep 1,000 accounts honest, AFT pipelines that turn account onboarding into a coffee-break task, GitHub Actions matrices that make cross-region rollouts a non-event.',
     ],
     gallery: [
-      { src: '/images/gallery/hero-1.jpg', caption: 'DevOps desk setup' },
-      { src: '/images/gallery/hero-2.jpg', caption: 'Terminal at work' },
+      { src: img('/images/gallery/hero-1.jpg'), caption: 'DevOps desk setup' },
+      { src: img('/images/gallery/hero-2.jpg'), caption: 'Terminal at work' },
     ],
     terminalLines: [
       { kind: 'comment', text: '#!/bin/bash' },
@@ -59,9 +64,9 @@ export const STORY = {
       'I read Vietnamese, English, and enough Terraform to argue with it politely.',
     ],
     gallery: [
-      { src: '/images/gallery/about-1.jpg', caption: 'Portrait' },
-      { src: '/images/gallery/about-2.jpg', caption: 'On the road' },
-      { src: '/images/gallery/about-3.jpg', caption: 'At HUST' },
+      { src: img('/images/gallery/about-1.jpg'), caption: 'Portrait' },
+      { src: img('/images/gallery/about-2.jpg'), caption: 'On the road' },
+      { src: img('/images/gallery/about-3.jpg'), caption: 'At HUST' },
     ],
   },
   education: {
@@ -73,13 +78,13 @@ export const STORY = {
       'The medal on this pedestal is the Excellent Graduate Medal. The pavilion beside it is Khuê Văn Các — Vietnam\'s Temple of Literature and the country\'s emblem of learning.',
     ],
     gallery: [
-      { src: '/images/gallery/edu-graduation.jpg',   caption: 'Graduation day — HUST 2025' },
-      { src: '/images/gallery/edu-toeic.png',        caption: 'TOEIC 920 (L 495 · R 425) — Nov 2024' },
-      { src: '/images/gallery/edu-medal.jpg',        caption: 'Graduation medal (HUST 2025)' },
-      { src: '/images/gallery/edu-scholarship-1.jpg', caption: 'Scholarship 2024-2' },
-      { src: '/images/gallery/edu-scholarship-2.jpg', caption: 'Scholarship 2025-1' },
-      { src: '/images/gallery/edu-scholarship-3.jpg', caption: 'Scholarship 2025-2' },
-      { src: '/images/gallery/edu-campus.jpg',       caption: 'HUST campus' },
+      { src: img('/images/gallery/edu-graduation.jpg'),   caption: 'Graduation day — HUST 2025' },
+      { src: img('/images/gallery/edu-toeic.png'),        caption: 'TOEIC 920 (L 495 · R 425) — Nov 2024' },
+      { src: img('/images/gallery/edu-medal.jpg'),        caption: 'Graduation medal (HUST 2025)' },
+      { src: img('/images/gallery/edu-scholarship-1.jpg'), caption: 'Scholarship 2024-2' },
+      { src: img('/images/gallery/edu-scholarship-2.jpg'), caption: 'Scholarship 2025-1' },
+      { src: img('/images/gallery/edu-scholarship-3.jpg'), caption: 'Scholarship 2025-2' },
+      { src: img('/images/gallery/edu-campus.jpg'),       caption: 'HUST campus' },
     ],
   },
   experience: {
@@ -92,10 +97,10 @@ export const STORY = {
       '🇸🇬 Singapore — Jenkins Shared Libraries standardising build → scan → test → deploy stages, K8s podTemplates with golden images, BlackDuck/Coverity/SonarQube gates.',
     ],
     gallery: [
-      { src: '/images/gallery/work-germany.jpg', caption: 'Germany — Landing Zone architecture' },
-      { src: '/images/gallery/work-france.jpg',  caption: 'France — Hub-and-spoke topology' },
-      { src: '/images/gallery/work-singapore.jpg', caption: 'Singapore — Jenkins CI/CD' },
-      { src: '/images/gallery/work-fpt.jpg',     caption: 'FPT Software HQ, Hanoi' },
+      { src: img('/images/gallery/work-germany.jpg'), caption: 'Germany — Landing Zone architecture' },
+      { src: img('/images/gallery/work-france.jpg'),  caption: 'France — Hub-and-spoke topology' },
+      { src: img('/images/gallery/work-singapore.jpg'), caption: 'Singapore — Jenkins CI/CD' },
+      { src: img('/images/gallery/work-fpt.jpg'),     caption: 'FPT Software HQ, Hanoi' },
     ],
   },
   future: {
@@ -130,11 +135,11 @@ export const EDUCATION = {
   medal: {
     title: 'Excellent Graduate Medal',
     subtitle: 'HUST — Since 1956',
-    image: '/images/medal-hust.png', // placeholder
+    image: img('/images/medal-hust.png'),
   },
   scholarships: [
-    { term: 'Semester 2024-2', label: 'Academic Achievement — Excellent', image: '/images/scholarship-2024-2.png' },
-    { term: 'Semester 2025-1', label: 'Academic Achievement — Excellent', image: '/images/scholarship-2025-1.png' },
-    { term: 'Semester 2025-2', label: 'Academic Achievement — Excellent', image: '/images/scholarship-2025-2.png' },
+    { term: 'Semester 2024-2', label: 'Academic Achievement — Excellent', image: img('/images/scholarship-2024-2.png') },
+    { term: 'Semester 2025-1', label: 'Academic Achievement — Excellent', image: img('/images/scholarship-2025-1.png') },
+    { term: 'Semester 2025-2', label: 'Academic Achievement — Excellent', image: img('/images/scholarship-2025-2.png') },
   ],
 }
