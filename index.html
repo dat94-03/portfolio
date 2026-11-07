@@ -1,22 +1,2698 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#0a0d14" />
-    <meta name="description" content="Lo Hoang Tien Dat (David) — DevOps / Cloud Engineer. Interactive 3D portfolio." />
-    <meta property="og:title" content="David Lo — DevOps / Cloud Engineer" />
-    <meta property="og:description" content="Enterprise AWS Landing Zones · Kubernetes · GitOps · Infrastructure as Code" />
-    <meta property="og:type" content="website" />
-    <title>David Lo — DevOps / Cloud Engineer</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-  </head>
-  <body>
-    <noscript>This portfolio requires JavaScript to render its 3D scenes.</noscript>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lỗ Hoàng Tiến Đạt (David) — DevOps &amp; Platform Engineer</title>
+<style>
+/* ============================================================
+   Autodraw portfolio.
+   Scroll drives a set of parallel cursors ("runners") that draw
+   the diagram: drag out shapes, type labels, pull connectors.
+   Drawing is monotonic — scrolling back up never un-draws.
+   Shape colours are the diagrams.net defaults.
+   ============================================================ */
+:root{
+  --bg:#fbfbfc;
+  --grid-minor:#ededf0;
+  --grid-major:#dfe0e4;
+  --ink:#1f2a33;
+  --ink-dim:#64717d;
+  --line:#4d5a66;
+  --accent:#0088cf;
+  --chrome:#f6f6f7;
+  --border:#e0e1e5;
+  --shape-font:-apple-system,BlinkMacSystemFont,"SF Pro Display","Inter",
+    "Segoe UI Variable Display","Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --ui-font:-apple-system,BlinkMacSystemFont,"SF Pro Text","Inter",
+    "Segoe UI Variable Text","Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+}
+body.dark{
+  --bg:#141518;
+  --grid-minor:#1e1f23;
+  --grid-major:#272930;
+  --ink:#e7eaed;
+  --ink-dim:#98a2ac;
+  --line:#8d99a5;
+  --chrome:#1c1d21;
+  --border:#2c2e34;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;font-family:var(--ui-font);color:var(--ink);background:var(--bg);
+  -webkit-font-smoothing:antialiased;
+}
+/* no scrollbar — the top progress line and the scene rail stand in for it */
+html,body{scrollbar-width:none;-ms-overflow-style:none}
+html::-webkit-scrollbar,body::-webkit-scrollbar{width:0;height:0;display:none}
+
+/* thin document-progress line, pinned above the toolbar */
+.progress{
+  position:fixed;top:0;left:0;right:0;height:2px;z-index:50;pointer-events:none;
+}
+.progress i{
+  display:block;height:100%;width:0;background:var(--accent);
+  box-shadow:0 0 8px rgba(0,136,207,.55);
+}
+body::before{
+  content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:
+    linear-gradient(var(--grid-minor) 1px,transparent 1px),
+    linear-gradient(90deg,var(--grid-minor) 1px,transparent 1px),
+    linear-gradient(var(--grid-major) 1px,transparent 1px),
+    linear-gradient(90deg,var(--grid-major) 1px,transparent 1px);
+  background-size:12px 12px,12px 12px,120px 120px,120px 120px;
+}
+
+/* ---------- top strip ---------- */
+.topbar{
+  position:fixed;top:0;left:0;right:0;height:52px;z-index:40;
+  display:flex;align-items:center;gap:14px;padding:0 18px;
+  background:color-mix(in srgb,var(--chrome) 96%,transparent);
+  backdrop-filter:blur(14px) saturate(1.3);
+  border-bottom:1px solid var(--border);
+  box-shadow:0 1px 12px rgba(0,0,0,.07);
+  font-size:13px;color:var(--ink-dim);
+}
+body.dark .topbar{box-shadow:0 1px 14px rgba(0,0,0,.45)}
+.topbar .brand{
+  display:flex;align-items:center;gap:11px;color:var(--ink);
+  font-size:17.5px;font-weight:800;letter-spacing:-.45px;white-space:nowrap;
+}
+.topbar .brand svg{display:block;flex:none}
+.topbar .brand em{
+  font-style:normal;font-size:12px;font-weight:600;letter-spacing:.2px;
+  color:var(--accent);background:color-mix(in srgb,var(--accent) 13%,transparent);
+  border:1px solid color-mix(in srgb,var(--accent) 30%,transparent);
+  padding:2px 7px;border-radius:999px;
+}
+.topbar .sp{flex:1}
+/* the filename reads as a document tab, the way an editor shows it */
+.topbar .file{
+  font-family:ui-monospace,Menlo,monospace;font-size:12px;
+  padding:5px 10px;border-radius:5px;
+  background:var(--chrome-2,color-mix(in srgb,var(--ink) 6%,transparent));
+  border:1px solid var(--border);color:var(--ink-dim);
+}
+.topbar button{
+  font:inherit;font-size:12.5px;font-weight:600;color:var(--ink);
+  background:none;cursor:pointer;
+  border:1px solid var(--border-2,var(--border));border-radius:5px;
+  padding:7px 14px;transition:.16s;
+}
+.topbar button:hover{
+  color:#fff;background:var(--accent);border-color:var(--accent);
+  box-shadow:0 2px 10px rgba(0,136,207,.35);
+}
+.rec{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:600}
+.rec i{width:8px;height:8px;border-radius:50%;background:#e53935;animation:blink 1.6s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
+
+/* ---------- left tool strip ---------- */
+.tools{
+  position:fixed;left:12px;top:50%;transform:translateY(-50%);z-index:40;
+  display:flex;flex-direction:column;gap:4px;padding:5px;
+  background:color-mix(in srgb,var(--chrome) 90%,transparent);
+  backdrop-filter:blur(8px);
+  border:1px solid var(--border);border-radius:6px;
+}
+.tool{
+  width:30px;height:30px;display:grid;place-items:center;border-radius:4px;
+  color:var(--ink-dim);border:1px solid transparent;transition:.18s;
+}
+.tool.on{background:var(--accent);color:#fff;border-color:var(--accent);box-shadow:0 2px 8px rgba(0,136,207,.35)}
+.tool svg{display:block}
+
+/* ---------- right scene nav ---------- */
+.nav{
+  position:fixed;right:14px;top:50%;transform:translateY(-50%);z-index:40;
+  display:flex;flex-direction:column;gap:11px;align-items:flex-end;
+}
+.nav a{
+  display:flex;align-items:center;gap:8px;text-decoration:none;
+  color:var(--ink-dim);font-size:10.5px;letter-spacing:.3px;
+}
+.nav a .b{
+  width:9px;height:9px;border:1.5px solid currentColor;border-radius:2px;
+  background:transparent;transition:.2s;
+}
+.nav a span{opacity:0;transition:.2s;transform:translateX(4px)}
+.nav a:hover span,.nav a.on span{opacity:1;transform:none}
+.nav a.done .b{background:currentColor;opacity:.5}
+.nav a.on{color:var(--accent);font-weight:600}
+.nav a.on .b{background:var(--accent);opacity:1;transform:scale(1.25)}
+
+/* ---------- bottom status / job matrix ---------- */
+.status{
+  position:fixed;bottom:0;left:0;right:0;height:30px;z-index:40;
+  display:flex;align-items:center;gap:12px;padding:0 12px;
+  background:color-mix(in srgb,var(--chrome) 88%,transparent);
+  backdrop-filter:blur(8px);border-top:1px solid var(--border);
+  font-size:11px;color:var(--ink-dim);
+}
+.status .mono{font-family:ui-monospace,Menlo,monospace;font-size:10.5px}
+.status .sp{flex:1}
+.jobs{display:flex;gap:10px;align-items:center}
+.job{
+  display:flex;align-items:center;gap:5px;font-family:ui-monospace,Menlo,monospace;
+  font-size:9.5px;color:var(--c);transition:opacity .2s;
+}
+.job .tr{width:34px;height:3px;background:var(--border);border-radius:2px;overflow:hidden}
+.job .tr b{display:block;height:100%;width:0;background:var(--c);border-radius:2px}
+.job.idle{opacity:.32}
+.job.hide{display:none}
+@media (max-width:760px){.jobs{display:none}}
+
+/* ---------- scenes ---------- */
+.scene{position:relative;z-index:1}
+.sticky{position:sticky;top:0;height:100vh;display:grid;place-items:center;overflow:hidden}
+.stage{
+  position:relative;transform-origin:center center;font-family:var(--shape-font);
+  will-change:transform;backface-visibility:hidden;
+}
+.scene-tag{
+  position:absolute;left:0;top:-34px;font-family:var(--ui-font);
+  font-size:10px;letter-spacing:1.6px;text-transform:uppercase;color:var(--ink-dim);
+  display:flex;gap:8px;align-items:center;
+}
+.scene-tag b{color:var(--accent);font-weight:600}
+
+/* ---------- shape palette ----------
+   --f fill, --s stroke, --ink label. Light values are the
+   diagrams.net defaults; dark values are their dark-canvas
+   equivalents, so every shape re-colours with the theme.    */
+.st-blue  {--f:#dae8fc;--s:#6c8ebf;--ink:#16304d}
+.st-green {--f:#d5e8d4;--s:#82b366;--ink:#1f3c1a}
+.st-orange{--f:#ffe6cc;--s:#d79b00;--ink:#523500}
+.st-yellow{--f:#fff2cc;--s:#d6b656;--ink:#4b3d0b}
+.st-red   {--f:#f8cecc;--s:#b85450;--ink:#541b19}
+.st-purple{--f:#e1d5e7;--s:#9673a6;--ink:#3a2743}
+.st-gray  {--f:#f5f5f5;--s:#9a9a9a;--ink:#2e2e2e}
+.st-white {--f:#ffffff;--s:#b1b1b1;--ink:#26313b}
+
+body.dark .st-blue  {--f:#16293d;--s:#5b8fc4;--ink:#cfe2f7}
+body.dark .st-green {--f:#1a2f1c;--s:#6aa868;--ink:#d2ecd0}
+body.dark .st-orange{--f:#3a2a12;--s:#c98a2a;--ink:#f6ddb8}
+body.dark .st-yellow{--f:#35300f;--s:#c4ac4a;--ink:#f2e7bb}
+body.dark .st-red   {--f:#3a1f1e;--s:#b55a56;--ink:#f3cfcd}
+body.dark .st-purple{--f:#2b2135;--s:#9074a8;--ink:#e3d4ee}
+body.dark .st-gray  {--f:#232428;--s:#7d8288;--ink:#d8dce0}
+body.dark .st-white {--f:#1b1c20;--s:#595e66;--ink:#dfe3e8}
+
+/* theme-dependent trim inside shapes */
+:root{
+  --chip-bg:rgba(255,255,255,.78);
+  --chip-bd:rgba(0,0,0,.16);
+  --bar-bg:rgba(0,0,0,.09);
+}
+body.dark{
+  --chip-bg:rgba(255,255,255,.07);
+  --chip-bd:rgba(255,255,255,.15);
+  --bar-bg:rgba(255,255,255,.1);
+}
+
+/* ---------- vendor icons (drawio-style shape-library tiles) ----------
+   A tile takes the shape of the mark inside it: square marks get a
+   square tile, a portrait emblem gets a portrait tile, a wordmark
+   gets a wide one — always with equal padding on all four sides.
+   SVG marks are measured at runtime (getBBox) and their viewBox is
+   tightened to the ink; artwork carries its ratio in the registry. */
+.ic{
+  --h:27px;
+  display:inline-flex;align-items:center;justify-content:center;flex:none;
+  height:calc(var(--h) * var(--hs,1));width:calc(var(--h) * var(--hs,1));
+  padding:calc(var(--h) * .15);border-radius:calc(var(--h) * .19);
+  background:var(--ic-bg,#888);color:var(--ic-fg,#fff);
+  font-family:var(--ui-font);font-weight:700;line-height:1;
+  font-size:calc(var(--h) * .41);letter-spacing:.2px;
+}
+.ic.lg{--h:42px}
+/* credentials, schools and employers run at 2x a tool icon — they matter more */
+.ic.xl{--h:54px}
+.ic.lg.xl{--h:84px}
+.ic svg,.ic img{width:100%;height:100%;display:block}
+.ic img{object-fit:contain}
+/* these must come after the tiers so they win on width */
+.ic.ar{width:auto;aspect-ratio:var(--ar)}
+/* a wordmark is far wider than tall, so budget its WIDTH instead —
+   otherwise a 3.4:1 logo at full tier height is 300px across */
+.ic.byw{width:calc(var(--h) * var(--hs,1) * 1.75);height:auto;aspect-ratio:var(--ar)}
+.ic.wm{width:auto;aspect-ratio:auto;padding:0 calc(var(--h) * .3);letter-spacing:.7px}
+body.dark .ic{box-shadow:inset 0 0 0 1px rgba(255,255,255,.16)}
+/* real logo artwork sits on a light plate in both themes, as logos do */
+.ic.pic{
+  background:#fff;box-shadow:inset 0 0 0 1px rgba(0,0,0,.1);
+  padding:calc(var(--h) * .055);border-radius:4px;
+}
+body.dark .ic.pic{background:#f4f5f7;box-shadow:inset 0 0 0 1px rgba(0,0,0,.25)}
+/* artwork that already carries its own silhouette (AWS badges) needs no plate */
+.ic.bare{background:none !important;box-shadow:none !important;padding:0;border-radius:0}
+/* caption rows stay compact whatever tier the icon is */
+.shp .cap .ic{--h:24px}
+.shp > .ic-badge{position:absolute;top:11px;right:13px;z-index:2}
+.shp.badge-mid > .ic-badge{top:50%;transform:translateY(-50%)}
+.shp .cap .ic{margin-right:1px}
+.icrow{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.cols2{width:100%;column-count:2;column-gap:26px}
+.cols2 .ri{break-inside:avoid;margin-bottom:7px}
+
+/* photo shape — revealed by the growing box, like placing an image */
+.shp .photo{
+  position:absolute;left:0;top:0;display:block;
+  object-fit:cover;object-position:50% 30%;
+}
+
+/* ---------- shapes ---------- */
+.shp{
+  position:absolute;overflow:hidden;will-change:width,height;z-index:2;
+  background:var(--f);border:1px solid var(--s);color:var(--ink);
+}
+.shp.drawing{background:color-mix(in srgb,var(--f) 45%,transparent)}
+.shp.rhombus,.shp.note,.shp.hex,.shp.cut{box-shadow:inset 0 0 0 1.5px var(--s)}
+
+/* ---------- photo gallery ----------
+   Three thumbnails in the card; clicking one opens a preview styled
+   like an editor dialog rather than a generic lightbox. */
+.gal{display:grid;grid-template-columns:repeat(var(--gc,2),1fr);gap:9px;width:100%}
+.gal > button{
+  all:unset;display:block;position:relative;cursor:pointer;
+  border-radius:4px;overflow:hidden;line-height:0;
+  box-shadow:inset 0 0 0 1px rgba(0,0,0,.18);
+  transition:transform .18s,box-shadow .18s;
+}
+.gal:not(.strip) > button:nth-child(3){grid-column:1 / -1}
+.gal > button img{width:100%;height:118px;object-fit:cover;display:block}
+.gal:not(.strip) > button:nth-child(3) img{height:132px}
+.gal.strip > button img{height:var(--gh,130px);object-position:50% 18%}
+.gal > button:hover{transform:translateY(-2px);box-shadow:0 5px 16px rgba(0,0,0,.26)}
+.gal > button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.gal .zoom{
+  position:absolute;right:6px;bottom:6px;width:22px;height:22px;border-radius:4px;
+  background:rgba(22,28,34,.72);color:#fff;display:grid;place-items:center;
+  opacity:0;transition:opacity .18s;
+}
+.gal > button:hover .zoom{opacity:1}
+
+/* preview dialog */
+.lb{
+  position:fixed;inset:0;z-index:90;display:none;
+  align-items:center;justify-content:center;padding:34px;
+  background:rgba(14,18,22,.74);backdrop-filter:blur(6px);
+}
+.lb.open{display:flex}
+.lb .frame{
+  background:var(--chrome);border:1px solid var(--border-2,var(--border));
+  border-radius:8px;overflow:hidden;max-width:min(1180px,94vw);
+  box-shadow:0 24px 70px rgba(0,0,0,.5);
+}
+.lb .bar{
+  display:flex;align-items:center;gap:12px;height:40px;padding:0 10px 0 14px;
+  border-bottom:1px solid var(--border);
+  font-family:ui-monospace,Menlo,monospace;font-size:11.5px;color:var(--ink-dim);
+}
+.lb .bar .nm{color:var(--ink);font-weight:600}
+.lb .bar .sp{flex:1}
+.lb .bar button{
+  all:unset;cursor:pointer;width:26px;height:26px;border-radius:4px;
+  display:grid;place-items:center;color:var(--ink-dim);font-size:15px;
+}
+.lb .bar button:hover{background:color-mix(in srgb,var(--ink) 10%,transparent);color:var(--ink)}
+.lb img{display:block;max-width:min(1180px,94vw);max-height:72vh;object-fit:contain;background:#0d1014}
+.lb .cap{padding:11px 15px;font-size:13px;color:var(--ink-dim);border-top:1px solid var(--border)}
+@media (max-width:860px){
+  .lb{padding:12px}
+  .lb img{max-height:62vh}
+}
+
+/* ---------- rubber-band selection ----------
+   Drag on empty canvas and you get drawio's marquee: a dashed box with
+   a translucent wash, and every shape it touches ends up selected. */
+.band{
+  position:fixed;display:none;z-index:65;pointer-events:none;border-radius:2px;
+  border:1.5px dashed var(--accent);
+  background:color-mix(in srgb,var(--accent) 13%,transparent);
+}
+.shp.picked{outline:1.6px dashed var(--accent);outline-offset:3px}
+.shp.picked .hdl{opacity:1;transform:scale(1)}
+body.marquee{user-select:none}
+@media (hover:none),(pointer:coarse){ .band{display:none !important} }
+
+/* ---------- ghost outline ----------
+   A dashed copy of the card sitting *behind* it, offset up and left so
+   it only peeks out along two edges — like a shape left mid-drag.
+   Dashes take the card's own stroke colour (same .st-* class), and the
+   rhythm varies per page: fine dots, short dashes, long dashes, or
+   dash-dot. --p is the pattern period, which the animation steps by. */
+.selbox{
+  position:absolute;pointer-events:none;z-index:1;opacity:0;
+  transition:opacity .22s ease;border-radius:4px;
+  --dash:7px; --p:13px; --th:1.7px;
+  background-image:
+    repeating-linear-gradient(90deg,var(--s) 0 var(--dash),transparent var(--dash) var(--p)),
+    repeating-linear-gradient(90deg,var(--s) 0 var(--dash),transparent var(--dash) var(--p)),
+    repeating-linear-gradient(180deg,var(--s) 0 var(--dash),transparent var(--dash) var(--p)),
+    repeating-linear-gradient(180deg,var(--s) 0 var(--dash),transparent var(--dash) var(--p));
+  background-size:100% var(--th),100% var(--th),var(--th) 100%,var(--th) 100%;
+  background-position:0 0,0 100%,0 0,100% 0;
+  background-repeat:no-repeat;
+}
+.selbox.live{animation:antsbox 1.25s linear infinite}
+@keyframes antsbox{
+  to{background-position:var(--p) 0, calc(-1 * var(--p)) 100%,
+                         0 calc(-1 * var(--p)), 100% var(--p)}
+}
+/* the rhythms */
+.selbox.d-short{--dash:5px;--p:10px;--th:1.6px}
+.selbox.d-long {--dash:14px;--p:22px;--th:2px}
+.selbox.d-dot  {--dash:2.5px;--p:7px;--th:1.5px}
+.selbox.d-dashdot{
+  --p:26px;--th:1.8px;
+  background-image:
+    repeating-linear-gradient(90deg,var(--s) 0 13px,transparent 13px 18px,
+      var(--s) 18px 21px,transparent 21px var(--p)),
+    repeating-linear-gradient(90deg,var(--s) 0 13px,transparent 13px 18px,
+      var(--s) 18px 21px,transparent 21px var(--p)),
+    repeating-linear-gradient(180deg,var(--s) 0 13px,transparent 13px 18px,
+      var(--s) 18px 21px,transparent 21px var(--p)),
+    repeating-linear-gradient(180deg,var(--s) 0 13px,transparent 13px 18px,
+      var(--s) 18px 21px,transparent 21px var(--p));
+}
+.selbox i{
+  position:absolute;width:9px;height:9px;background:var(--s);
+  border:1.6px solid #fff;border-radius:1px;
+  box-shadow:0 1px 3px rgba(0,0,0,.28);
+}
+.selbox.d-dot i{border-radius:50%}
+body.dark .selbox i{border-color:rgba(255,255,255,.9)}
+@media (prefers-reduced-motion:reduce){ .selbox.live{animation:none} }
+
+/* ---------- card types ----------
+   draw.io's style vocabulary: cut-corner cards, document shapes,
+   hexagons, dashed groups, double borders, gradients, shadows and
+   the sketch look — used to tell different kinds of card apart. */
+/* cut corner, like drawio's "card" */
+.shp.cut{
+  clip-path:polygon(19px 0,100% 0,100% 100%,0 100%,0 19px);
+  border:none !important;
+}
+/* document — a curved bottom edge, border intact */
+.shp.doc{border-radius:4px 4px 50% 50% / 4px 4px 22px 22px}
+/* hexagon with a fixed slant so it works at any width */
+.shp.hex{
+  clip-path:polygon(19px 0,calc(100% - 19px) 0,100% 50%,
+                    calc(100% - 19px) 100%,19px 100%,0 50%);
+  border:none !important;
+}
+.shp.hex > .body{padding-left:32px;padding-right:32px}
+.shp.hex > .ic-badge{right:28px}
+/* loose collection: dashed outline, washed fill (drawio group) */
+.shp.group{
+  border-style:dashed;border-width:1.5px;
+  background:color-mix(in srgb,var(--f) 42%,transparent);
+}
+/* dotted outline for the "process" boxes */
+.shp.dotted{border-style:dotted;border-width:2px}
+/* thicker border = longer dashes, since CSS scales the pattern with width */
+.shp.thick{border-width:2.6px}
+.shp.hair{border-width:1px;border-style:dashed}
+/* double rule — reserved for the award */
+.shp.dbl{box-shadow:inset 0 0 0 4px var(--f),inset 0 0 0 5.5px var(--s)}
+/* gradient fill for the headline card on each page */
+.shp.grad{background:linear-gradient(152deg,var(--f),color-mix(in srgb,var(--f) 62%,var(--s)))}
+.shp.grad.drawing{
+  background:linear-gradient(152deg,
+    color-mix(in srgb,var(--f) 45%,transparent),
+    color-mix(in srgb,var(--f) 28%,transparent));
+}
+/* lifted off the grid */
+.shp.shadow{filter:drop-shadow(0 5px 14px rgba(0,0,0,.16))}
+body.dark .shp.shadow{filter:drop-shadow(0 5px 16px rgba(0,0,0,.55))}
+/* drawio's sketch style, for the hand-written asides */
+.shp.sketch{
+  border-radius:255px 14px 225px 14px / 14px 225px 14px 255px;
+  border-width:1.5px;
+}
+.shp .cap{border-bottom:1px solid var(--s)}
+.shp .lane-h{border-right:1px solid var(--s)}
+.bar i{background:var(--s)}
+.shp.rounded{border-radius:5px}
+.shp.pill{border-radius:999px}
+.shp.ellipse{border-radius:50%}
+.shp.rhombus,.shp.note,.shp.hex{border:none !important}
+.shp.rhombus{clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%)}
+.shp.note{clip-path:polygon(0 0,calc(100% - 18px) 0,100% 18px,100% 100%,0 100%)}
+.shp.hex{clip-path:polygon(13% 0,87% 0,100% 50%,87% 100%,13% 100%,0 50%)}
+.shp.drawing{border-style:dashed !important}
+.shp .body{padding:14px 18px;height:100%;display:flex;flex-direction:column;gap:7px}
+.shp.center .body{align-items:center;justify-content:center;text-align:center;padding:8px}
+.shp .cap{
+  height:40px;display:flex;align-items:center;gap:9px;padding:0 15px;
+  font-size:13px;font-weight:800;letter-spacing:.4px;
+}
+.shp .cap .meta{margin-left:auto;font-weight:400;font-size:11.5px;opacity:.72}
+.shp .lane-h{position:absolute;left:0;top:0;bottom:0;width:30px;display:grid;place-items:center}
+.shp .lane-h span{
+  writing-mode:vertical-rl;transform:rotate(180deg);white-space:nowrap;
+  font-size:10.5px;font-weight:700;letter-spacing:.6px;
+}
+.shp .lane-body{margin-left:30px;padding:10px 14px;height:100%;display:flex;flex-direction:column;gap:5px}
+
+/* handles pop when a shape is released — tinted per runner */
+.hdl{
+  position:absolute;width:7px;height:7px;background:var(--hc,var(--accent));
+  border:1px solid #fff;border-radius:1px;opacity:0;transform:scale(.4);
+  transition:opacity .18s,transform .18s;pointer-events:none;z-index:4;
+}
+.shp.held .hdl{opacity:1;transform:scale(1)}
+
+/* text inside shapes */
+.ln{line-height:1.35;white-space:pre-wrap}
+.ln.h1{font-size:45px;font-weight:800;letter-spacing:-1.4px}
+.ln.h2{font-size:21.5px;font-weight:700;letter-spacing:-.35px}
+.ln.h3{font-size:12.5px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;opacity:.9}
+.ln.big{font-size:38px;font-weight:800;letter-spacing:-1.3px;font-variant-numeric:tabular-nums}
+.ln.p{font-size:14px;font-weight:450;line-height:1.55;color:color-mix(in srgb,var(--ink) 86%,transparent)}
+.ln.dim{font-size:12.5px;font-weight:500;color:color-mix(in srgb,var(--ink) 64%,transparent)}
+.ln.mono{font-family:ui-monospace,Menlo,monospace;font-size:13.5px}
+/* the title-page hero runs a size up across the board */
+.shp.bigtext .ln.h1{font-size:60px;letter-spacing:-2.1px;line-height:1.08}
+.shp.bigtext .ln.h2{font-size:25px;letter-spacing:-.4px}
+.shp.bigtext .ln.dim{font-size:14px;line-height:1.45}
+.shp.bigtext .ri.p{font-size:16.5px;line-height:1.5}
+.shp.bigtext .ic.lg{--h:56px}
+.shp.bigtext .icrow{gap:12px;margin-top:4px}
+.shp.bigtext > .body{padding:22px 26px}
+body.narrow .shp.bigtext .ln.h1{font-size:34px;letter-spacing:-1.2px}
+body.narrow .shp.bigtext .ln.h2{font-size:19px}
+body.narrow .shp.bigtext .ic.lg{--h:42px}
+.caret{
+  display:inline-block;width:1.5px;height:1em;background:var(--cc,var(--accent));
+  vertical-align:-.14em;margin-left:1px;opacity:0;
+}
+.caret.on{animation:cblink .9s steps(1) infinite}
+@keyframes cblink{0%,49%{opacity:1}50%,100%{opacity:0}}
+
+/* revealed items */
+.ri{opacity:0;transform:translateY(5px)}
+.ri.p{font-size:14px;font-weight:450;line-height:1.6;color:color-mix(in srgb,var(--ink) 86%,transparent)}
+.ri.li{
+  font-size:13.5px;font-weight:500;line-height:1.5;padding-left:16px;position:relative;
+  color:color-mix(in srgb,var(--ink) 86%,transparent);
+}
+.ri.li::before{content:"";position:absolute;left:3px;top:.52em;width:5px;height:5px;background:currentColor;opacity:.45;border-radius:1px}
+.ri.dim{font-size:12.5px;font-weight:500;color:color-mix(in srgb,var(--ink) 64%,transparent)}
+.ri.mono{
+  font-family:ui-monospace,Menlo,monospace;font-size:13px;
+  color:color-mix(in srgb,var(--ink) 86%,transparent);
+}
+.bar-row{display:flex;flex-direction:column;gap:3px}
+.bar-row .t{display:flex;justify-content:space-between;font-size:13px;font-weight:600}
+.bar-row .t em{font-style:normal;opacity:.55;font-size:11.5px}
+.bar{height:5px;border-radius:3px;background:var(--bar-bg);overflow:hidden}
+.bar i{display:block;height:100%;width:0;border-radius:3px}
+.chips{display:flex;flex-wrap:wrap;gap:5px}
+.chip{
+  font-size:11.5px;font-weight:600;padding:4px 8px;border-radius:3px;
+  background:var(--chip-bg);border:1px solid var(--chip-bd);
+}
+.statrow{display:flex;flex-wrap:wrap;gap:12px 30px;align-items:flex-start}
+.statrow > div{display:flex;flex-direction:column;gap:1px;min-width:0}
+.statrow b{
+  font-size:23px;font-weight:800;letter-spacing:-.6px;line-height:1.08;
+  font-variant-numeric:tabular-nums;
+}
+.statrow i{font-style:normal;font-size:11.5px;font-weight:500;opacity:.74;line-height:1.3}
+.flowline{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:11px}
+.flowline b{
+  display:inline-flex;align-items:center;gap:6px;
+  font-weight:650;padding:3px 7px;border-radius:3px;
+  background:var(--chip-bg);border:1px solid var(--chip-bd);
+}
+.chip{display:inline-flex;align-items:center;gap:7px;padding:4px 9px 4px 5px}
+.bar-row .t > span{display:flex;align-items:center;gap:9px;min-width:0}
+.flowline s{text-decoration:none;opacity:.45}
+
+/* ---------- connectors ---------- */
+svg.wires{position:absolute;left:0;top:0;overflow:visible;pointer-events:none;z-index:3}
+svg.wires path.w{fill:none;stroke:var(--line);stroke-width:1.5;stroke-linecap:round}
+/* drawio's "flow animation" edge style: marching dashes toward the
+   arrowhead, switched on once a connector is fully drawn. Only the
+   scene on screen animates, so off-screen pages cost nothing. */
+svg.wires path.w.flow{stroke-dasharray:7 5}
+svg.wires.live path.w.flow{animation:edgeflow 1.1s linear infinite}
+@keyframes edgeflow{to{stroke-dashoffset:-12}}
+@media (prefers-reduced-motion:reduce){
+  svg.wires.live path.w.flow{animation:none}
+}
+svg.wires path.head{fill:var(--line);stroke:none;opacity:0}
+svg.wires path.head.open{
+  fill:none;stroke:var(--line);stroke-width:1.8;
+  stroke-linecap:round;stroke-linejoin:round;
+}
+svg.wires text{
+  font-family:var(--shape-font);font-size:10px;fill:var(--ink-dim);
+  paint-order:stroke;stroke:var(--bg);stroke-width:4px;opacity:0;
+}
+
+/* ---------- cursors ---------- */
+.cursor{
+  position:absolute;left:0;top:0;z-index:60;pointer-events:none;
+  will-change:transform,opacity;opacity:0;transition:opacity .28s ease;
+}
+.cursor .inner{position:relative;transform-origin:0 0}
+.cursor .arrow{filter:drop-shadow(0 2px 3px rgba(0,0,0,.3))}
+.cursor .ring{
+  position:absolute;left:-10px;top:-10px;width:20px;height:20px;border-radius:50%;
+  border:1.5px solid var(--c);opacity:0;transform:scale(.5);transition:.14s;
+}
+.cursor.down .ring{opacity:.9;transform:scale(1)}
+.cursor .tag{
+  position:absolute;left:17px;top:15px;white-space:nowrap;
+  font-family:ui-monospace,Menlo,monospace;font-size:9.5px;letter-spacing:.2px;
+  background:var(--c);color:#fff;padding:2px 6px;border-radius:3px;
+  box-shadow:0 1px 4px rgba(0,0,0,.2);
+}
+.cursor .tag em{font-style:normal;opacity:.72;margin-left:5px}
+
+.shp.link{transition:box-shadow .18s,transform .18s}
+.shp.link:hover{
+  box-shadow:0 4px 18px rgba(0,0,0,.16),inset 0 0 0 1.5px var(--s);
+  transform:translateY(-1px);
+}
+body.dark .shp.link:hover{box-shadow:0 4px 18px rgba(0,0,0,.45),inset 0 0 0 1.5px var(--s)}
+.shp.link:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* ---------- the visitor's own cursor ----------
+   Same arrow the runners use, same white keyline, same name tag.
+   The arrow is a real CSS cursor so the OS draws it with no lag;
+   only the little tag is rendered by us. */
+body{cursor:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='22' height='29' viewBox='0 0 19 25'><path d='M2 1.5 L2 20 L6.6 15.6 L9.6 23 L13 21.5 L10 14.3 L16.5 14.2 Z' fill='%232f3a44' stroke='%23ffffff' stroke-width='1.7' stroke-linejoin='round' stroke-linecap='round'/></svg>") 2 2, default}
+body.dark{cursor:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='22' height='29' viewBox='0 0 19 25'><path d='M2 1.5 L2 20 L6.6 15.6 L9.6 23 L13 21.5 L10 14.3 L16.5 14.2 Z' fill='%23e8edf2' stroke='%23ffffff' stroke-width='1.7' stroke-linejoin='round' stroke-linecap='round'/></svg>") 2 2, default}
+a, button, .tab, .nav a, .intro .card, .shp{cursor:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='22' height='29' viewBox='0 0 19 25'><path d='M2 1.5 L2 20 L6.6 15.6 L9.6 23 L13 21.5 L10 14.3 L16.5 14.2 Z' fill='%230b7fc4' stroke='%23ffffff' stroke-width='1.7' stroke-linejoin='round' stroke-linecap='round'/></svg>") 2 2, pointer}
+.youtag{
+  position:fixed;left:0;top:0;z-index:70;pointer-events:none;
+  font-family:ui-monospace,Menlo,monospace;font-size:9.5px;letter-spacing:.2px;
+  background:#2f3a44;color:#fff;padding:2px 6px;border-radius:3px;
+  box-shadow:0 1px 4px rgba(0,0,0,.25);
+  opacity:0;transition:opacity .35s ease;will-change:transform;
+}
+body.dark .youtag{background:#49555f}
+.youtag em{font-style:normal;opacity:.7;margin-left:5px}
+@media (hover:none),(pointer:coarse){
+  .youtag{display:none}
+  body,body.dark,a,button,.tab,.nav a,.intro .card,.shp{cursor:auto}
+}
+
+/* ---------- opening guide: a selected sticky note on the canvas ---------- */
+.intro{
+  position:fixed;inset:0;z-index:35;display:grid;place-items:center;
+  pointer-events:none;
+}
+/* vignette so the grid falls back behind the note */
+.intro::before{
+  content:"";position:absolute;inset:0;
+  background:radial-gradient(46% 42% at 50% 48%,
+    color-mix(in srgb,var(--bg) 94%,transparent) 0%,
+    color-mix(in srgb,var(--bg) 60%,transparent) 55%, transparent 76%);
+}
+.intro .wrap{
+  position:relative;
+  animation:introIn .75s cubic-bezier(.17,.84,.26,1) both;
+}
+@keyframes introIn{
+  from{opacity:0;transform:translateY(16px) scale(.95)}
+  to{opacity:1;transform:none}
+}
+/* the note itself — diagrams.net yellow, folded corner */
+.intro .card{
+  position:relative;width:min(88vw,470px);
+  padding:30px 36px 28px;text-align:center;
+  background:var(--note-f);color:var(--note-ink);
+  clip-path:polygon(0 0,calc(100% - 24px) 0,100% 24px,100% 100%,0 100%);
+  box-shadow:inset 0 0 0 1.5px var(--note-s);
+  filter:drop-shadow(0 14px 30px rgba(0,0,0,.2));
+  pointer-events:auto;cursor:pointer;
+}
+:root{
+  --note-f:#fff2cc;--note-s:#d6b656;--note-ink:#4b3d12;
+  --note-head:#3a2f0c;--note-eye:#8a7324;--note-eye-bd:#a98f2e;
+}
+body.dark{
+  --note-f:#35300f;--note-s:#c4ac4a;--note-ink:#e6d9a8;
+  --note-head:#f7eec9;--note-eye:#bda85c;--note-eye-bd:#9d8a3f;
+}
+.intro .eyebrow{
+  font-family:ui-monospace,Menlo,monospace;
+  font-size:10px;letter-spacing:1.4px;text-transform:uppercase;color:var(--note-eye);
+  display:flex;align-items:center;justify-content:center;gap:7px;margin-bottom:14px;
+}
+.intro .eyebrow i{
+  width:7px;height:7px;border:1.5px dashed var(--note-eye-bd);display:block;
+}
+.intro h1{
+  margin:0 0 11px;font-size:32px;line-height:1.12;font-weight:800;
+  letter-spacing:-1.1px;color:var(--note-head);
+}
+.intro p{margin:0;font-size:13px;line-height:1.68;color:var(--note-ink)}
+.intro p b{color:var(--note-head);font-weight:700}
+.intro .cta{
+  margin-top:22px;display:inline-flex;align-items:center;gap:10px;
+  background:var(--accent);color:#fff;padding:10px 20px;border-radius:999px;
+  font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;
+  box-shadow:0 5px 16px rgba(0,136,207,.45);
+}
+.intro .cta svg{animation:nudge 1.6s ease-in-out infinite}
+@keyframes nudge{
+  0%,100%{transform:translateY(-2px);opacity:.6}
+  50%{transform:translateY(4px);opacity:1}
+}
+/* marching-ants selection outline */
+.intro .ants{position:absolute;inset:-9px;overflow:visible}
+.intro .ants rect{
+  fill:none;stroke:var(--accent);stroke-width:1.3;stroke-dasharray:6 4;
+  animation:ants 1.3s linear infinite;
+}
+@keyframes ants{to{stroke-dashoffset:-20}}
+/* selection handles on the outline corners */
+.intro .h{
+  position:absolute;width:9px;height:9px;background:var(--accent);
+  border:1.5px solid #fff;border-radius:1px;
+  box-shadow:0 1px 3px rgba(0,0,0,.3);
+  animation:popIn .32s cubic-bezier(.2,1.5,.4,1) both;
+}
+@keyframes popIn{from{opacity:0;transform:scale(.3)}to{opacity:1;transform:none}}
+.intro .h.tl{left:-13px;top:-13px;animation-delay:.52s}
+.intro .h.tr{right:-13px;top:-13px;animation-delay:.58s}
+.intro .h.bl{left:-13px;bottom:-13px;animation-delay:.64s}
+.intro .h.br{right:-13px;bottom:-13px;animation-delay:.70s}
+/* a runner parked on the note, as if it just placed it */
+.intro .cur{
+  position:absolute;right:-30px;bottom:-34px;
+  animation:popIn .4s cubic-bezier(.2,1.4,.4,1) .78s both;
+}
+.intro .cur .tag{
+  position:absolute;left:17px;top:15px;white-space:nowrap;
+  font-family:ui-monospace,Menlo,monospace;font-size:9.5px;
+  background:#0b7fc4;color:#fff;padding:2px 6px;border-radius:3px;
+  box-shadow:0 1px 4px rgba(0,0,0,.25);
+}
+.intro .cur .tag em{font-style:normal;opacity:.72;margin-left:5px}
+@media (prefers-reduced-motion:reduce){
+  .intro .wrap,.intro .h,.intro .cur{animation:none}
+  .intro .ants rect,.intro .cta svg{animation:none}
+}
+
+/* ---------- outro ---------- */
+.outro{
+  position:relative;z-index:1;min-height:62vh;display:grid;place-items:center;
+  text-align:center;padding:90px 24px 120px;
+}
+.outro .eyebrow{
+  font-family:ui-monospace,Menlo,monospace;
+  font-size:11.5px;letter-spacing:2.2px;text-transform:uppercase;
+  color:var(--ink-dim);margin-bottom:18px;
+}
+.outro .big{
+  font-size:38px;line-height:1.1;font-weight:800;letter-spacing:-1.4px;
+  color:var(--ink);margin-bottom:18px;
+}
+.outro p{
+  color:var(--ink-dim);font-size:16px;max-width:660px;line-height:1.65;
+  margin:0 auto;font-weight:450;
+}
+.outro .acts{
+  display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-top:34px;
+}
+.outro .btn{
+  display:inline-flex;align-items:center;gap:9px;text-decoration:none;
+  font-size:13.5px;font-weight:700;letter-spacing:.2px;
+  padding:13px 22px;border-radius:7px;
+  border:1px solid var(--border-2,var(--border));color:var(--ink);
+  transition:.17s;
+}
+.outro .btn:hover{
+  border-color:var(--accent);color:var(--accent);
+  box-shadow:0 3px 14px rgba(0,136,207,.2);
+}
+.outro .btn.primary{
+  background:var(--accent);border-color:var(--accent);color:#fff;
+  box-shadow:0 4px 16px rgba(0,136,207,.4);
+}
+.outro .btn.primary:hover{filter:brightness(1.08);color:#fff}
+
+/* ============================================================
+   NARROW MODE — phones and short landscape windows. The diagram
+   can't just be scaled down (a 1180px canvas on a 390px screen
+   renders 12px text at 4px), so every shape leaves absolute
+   positioning and stacks into a single full-width column.
+   ============================================================ */
+body.narrow{overflow-x:hidden}
+body.narrow .tools,
+body.narrow .nav,
+body.narrow .outline,
+body.narrow .cursor,
+body.narrow svg.wires{display:none !important}
+
+body.narrow .scene{height:auto !important}
+body.narrow .sticky{
+  position:static;height:auto;display:block;overflow:visible;
+  padding:0 13px;
+}
+body.narrow .stage{
+  position:relative;width:100% !important;height:auto !important;
+  transform:none !important;display:flex;flex-direction:column;
+}
+body.narrow .scene-tag{
+  position:static;top:auto;left:auto;
+  margin:30px 0 16px;font-size:9.5px;letter-spacing:1.4px;
+}
+
+/* every shape becomes a full-width card in document flow */
+body.narrow .shp{
+  position:relative !important;left:auto !important;top:auto !important;
+  width:100% !important;height:auto !important;
+  /* the reveal: one clip for every shape, overriding the
+     decorative note/rhombus/hex clips which don't survive a phone */
+  clip-path:inset(-6px -6px calc((1 - var(--rev,1)) * 100%) -6px) !important;
+}
+body.narrow .shp.rhombus,
+body.narrow .shp.note,
+body.narrow .shp.hex,
+body.narrow .shp.cut{border:1px solid var(--s) !important;box-shadow:none}
+body.narrow .shp.hex > .body{padding:14px 18px}
+body.narrow .shp.sketch{border-radius:6px}
+body.narrow .selbox{display:none}
+body.narrow .shp.selected{outline:1.6px dashed var(--s);outline-offset:6px}
+body.narrow .shp.ellipse,body.narrow .shp.pill{border-radius:8px}
+body.narrow .shp.center .body{align-items:flex-start;text-align:left}
+body.narrow .shp .body,
+body.narrow .shp .lane-body{padding:13px 15px}
+body.narrow .shp .lane-h{display:none}
+body.narrow .shp .lane-body{margin-left:0}
+/* the photo shape gets a sensible portrait crop instead of a fixed box */
+body.narrow .shp .photo{
+  position:static;width:100% !important;height:min(56vw,280px) !important;
+}
+body.narrow .shp > .ic-badge{top:13px;right:14px}
+
+/* dashed connector between stacked cards, with the same flow animation */
+.conn{
+  height:34px;flex:none;position:relative;opacity:0;
+  display:none;
+}
+body.narrow .conn{display:block}
+.conn::before{
+  content:"";position:absolute;left:28px;top:0;bottom:9px;width:1.5px;
+  background:repeating-linear-gradient(to bottom,
+    var(--line) 0 7px, transparent 7px 12px);
+}
+.conn::after{
+  content:"";position:absolute;left:23px;bottom:0;
+  border-left:5px solid transparent;border-right:5px solid transparent;
+  border-top:8px solid var(--line);
+}
+body.narrow .conn.flowing::before{animation:connflow 1.1s linear infinite}
+@keyframes connflow{to{background-position:0 12px}}
+
+/* chrome trimmed for a small screen */
+body.narrow .topbar{height:48px;gap:9px;padding:0 11px}
+body.narrow .topbar .file,
+body.narrow .rec{display:none}
+body.narrow .topbar .brand{font-size:14.5px;gap:8px}
+body.narrow .topbar .brand em{font-size:10.5px;padding:1px 6px}
+body.narrow .topbar .brand svg{width:18px;height:18px}
+body.narrow .topbar button{padding:5px 10px;font-size:11.5px}
+body.narrow .status{height:34px}
+body.narrow .intro .card{width:min(92vw,420px);padding:24px 22px 22px}
+body.narrow .intro h1{font-size:25px}
+body.narrow .intro p{font-size:12px}
+body.narrow .ln.h1{font-size:30px}
+body.narrow .ln.h2{font-size:17px}
+body.narrow .ln.big{font-size:30px}
+body.narrow .cols2{column-count:1}
+body.narrow .gal{grid-template-columns:1fr 1fr}
+body.narrow .gal > button img{height:96px}
+body.narrow .gal > button:nth-child(3) img{height:120px}
+body.narrow .outro{min-height:auto;padding:60px 18px 90px}
+body.narrow .outro .big{font-size:27px;letter-spacing:-.9px}
+body.narrow .outro p{font-size:14px}
+body.narrow .outro .btn{font-size:12.5px;padding:11px 17px}
+body.narrow .ic{max-width:100%}
+body.narrow .ic.xl{--h:44px}
+body.narrow .ic.lg.xl{--h:56px}
+body.narrow .jobs{display:none}
+@media (prefers-reduced-motion:reduce){
+  body.narrow .conn.flowing::before{animation:none}
+}
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  .cursor{display:none !important}
+}
+</style>
+</head>
+<body>
+<script>
+/* applied before first paint so the theme never flashes */
+(function(){try{
+  var t = localStorage.getItem('portfolio-theme');
+  if(t === 'dark' || (!t && matchMedia('(prefers-color-scheme:dark)').matches))
+    document.body.classList.add('dark');
+}catch(e){}})();
+</script>
+
+<div class="topbar">
+  <div class="brand">
+    <svg width="22" height="22" viewBox="0 0 24 24">
+      <rect x="1.5" y="2" width="9" height="6.5" rx="1" fill="#dae8fc" stroke="#6c8ebf"/>
+      <rect x="13.5" y="9" width="9" height="6.5" rx="1" fill="#d5e8d4" stroke="#82b366"/>
+      <rect x="1.5" y="15.5" width="9" height="6.5" rx="1" fill="#ffe6cc" stroke="#d79b00"/>
+      <path d="M10.5 5.3h3.5v6.9M10.5 18.7h3.5v-6.5" fill="none" stroke="#888" stroke-width="1.1"/>
+    </svg>
+    Lỗ Hoàng Tiến Đạt<em>David</em>
+  </div>
+  <span class="file">portfolio.drawio</span>
+  <div class="sp"></div>
+  <div class="rec"><i></i><span id="recTxt">autodraw</span></div>
+  <button id="themeBtn">Dark</button>
+  <button id="skipBtn">Skip to contact</button>
+</div>
+
+<div class="tools" id="tools"></div>
+<nav class="nav" id="nav"></nav>
+
+<div class="progress"><i id="progFill"></i></div>
+
+<div class="youtag" id="youTag">you<em>visitor</em></div>
+
+<div class="lb" id="lb" role="dialog" aria-modal="true" aria-label="Photo preview">
+  <div class="frame">
+    <div class="bar">
+      <span class="nm" id="lbName">photo.jpg</span>
+      <span id="lbIdx">1 / 3</span>
+      <span class="sp"></span>
+      <button id="lbPrev" title="Previous (←)">&#8249;</button>
+      <button id="lbNext" title="Next (→)">&#8250;</button>
+      <button id="lbClose" title="Close (Esc)">&#10005;</button>
+    </div>
+    <img id="lbImg" alt="">
+    <div class="cap" id="lbCap"></div>
+  </div>
+</div>
+
+<div class="intro" id="intro">
+  <div class="wrap">
+    <svg class="ants"><rect x="0" y="0" width="100%" height="100%"/></svg>
+    <div class="card" id="introCard">
+      <div class="eyebrow"><i></i><span id="introCount">empty canvas</span></div>
+      <h1>This page draws itself.</h1>
+      <p><b>Scroll down</b> and four cursors build the whole portfolio as you go —
+         <span id="introScenes">8</span> pages, drawn live, nothing pre-rendered.<br>
+         Scroll back up any time: finished work stays on the canvas.</p>
+      <div class="cta">
+        <svg width="15" height="17" viewBox="0 0 20 22" fill="none"
+             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M10 2v15"/><path d="M4 12l6 6 6-6"/>
+        </svg>
+        scroll to start
+      </div>
+    </div>
+    <i class="h tl"></i><i class="h tr"></i><i class="h bl"></i><i class="h br"></i>
+    <div class="cur">
+      <svg width="19" height="25" viewBox="0 0 19 25">
+        <path d="M2 1.5 L2 20 L6.6 15.6 L9.6 23 L13 21.5 L10 14.3 L16.5 14.2 Z"
+              fill="#0b7fc4" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/>
+      </svg>
+      <div class="tag">runner-1<em>note</em></div>
+    </div>
+  </div>
+</div>
+
+<main id="scenes"></main>
+
+<section class="outro">
+  <div>
+    <div class="eyebrow">end of document · 9 pages</div>
+    <div class="big">That&rsquo;s the whole diagram.</div>
+    <p>Drawn live as you scrolled — one HTML file, no framework, no build step.
+       Scroll position drives the runners, and the ink never dries backwards.</p>
+    <div class="acts">
+      <a href="#contact" class="btn primary">Get in touch</a>
+      <a href="#" id="replay" class="btn">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 11A8 8 0 1 0 12 20"/><path d="M20 4v7h-7"/>
+        </svg>
+        Wipe the board and replay
+      </a>
+    </div>
+  </div>
+</section>
+
+<div class="status">
+  <span class="mono" id="stScene">01 / 06</span>
+  <span id="stName">Title block</span>
+  <div class="jobs" id="stJobs"></div>
+  <div class="sp"></div>
+  <span class="mono" id="stShapes">0 shapes</span>
+  <span class="mono" id="stSel"></span>
+</div>
+
+<!-- official brand marks, CC0 from simpleicons.org -->
+<script src="icons.js"></script>
+
+<script>
+/* ------------------------------------------------------------
+   Every visit starts on a blank sheet: stop the browser from
+   restoring a mid-page scroll position (which would otherwise
+   snap a whole scene to "already drawn" with no animation).
+   ------------------------------------------------------------ */
+if('scrollRestoration' in history) history.scrollRestoration = 'manual';
+const jumpTop = ()=>scrollTo({top:0, left:0, behavior:'instant'});
+jumpTop();
+if(location.hash){
+  try{ history.replaceState(null,'',location.pathname+location.search); }catch(e){}
+}
+
+/* ============================================================
+   PALETTE — actual colours live in CSS as .st-* classes so the
+   light/dark toggle can repaint every shape; this is just the
+   set of valid names.
+   ============================================================ */
+const ST_KEYS = new Set(['blue','green','orange','yellow','red','purple','gray','white']);
+
+/* ============================================================
+   ICON LIBRARY — the shape library drawio users actually live in.
+   Marks that read clearly at 13px are drawn as SVG; everything
+   else gets a brand-coloured wordmark tile. AWS services use the
+   real AWS category colours (compute orange, storage green,
+   database blue, networking purple, security red, analytics
+   purple, management pink).
+   ============================================================ */
+const G = {
+  /* generic marks only — no brand has an official icon for these */
+  net:`<circle cx="12" cy="4.6" r="2.5"/><circle cx="4.8" cy="18.4" r="2.5"/>
+       <circle cx="19.2" cy="18.4" r="2.5"/>
+       <path d="M12 7.1v5.4M10.6 13.4 6.4 16.6M13.4 13.4l4.2 3.2M7.3 18.4h9.4"
+        fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+       <circle cx="12" cy="13" r="1.8"/>`,
+  chip:`<rect x="6.4" y="6.4" width="11.2" height="11.2" rx="1.6" fill="none"
+        stroke="currentColor" stroke-width="1.8"/>
+       <rect x="10" y="10" width="4" height="4" rx=".6"/>
+       <g stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+         <path d="M9 6.4V3.6M12 6.4V3.6M15 6.4V3.6M9 20.4v-2.8M12 20.4v-2.8M15 20.4v-2.8"/>
+         <path d="M6.4 9H3.6M6.4 12H3.6M6.4 15H3.6M20.4 9h-2.8M20.4 12h-2.8M20.4 15h-2.8"/>
+       </g>`,
+  book:`<path d="M4 5.2c2.6-1.4 5.4-1.4 8 0v14c-2.6-1.4-5.4-1.4-8 0z"/>
+       <path d="M20 5.2c-2.6-1.4-5.4-1.4-8 0v14c2.6-1.4 5.4-1.4 8 0z" opacity=".72"/>`,
+  db:`<ellipse cx="12" cy="6.4" rx="7" ry="2.8" fill="none" stroke="currentColor" stroke-width="1.7"/>
+       <path d="M5 6.4v11.2c0 1.5 3.1 2.8 7 2.8s7-1.3 7-2.8V6.4" fill="none"
+        stroke="currentColor" stroke-width="1.7"/>
+       <path d="M5 12c0 1.5 3.1 2.8 7 2.8s7-1.3 7-2.8" fill="none" stroke="currentColor"
+        stroke-width="1.5"/>`,
+  lock:`<rect x="4.8" y="10.4" width="14.4" height="9.8" rx="2.1"/>
+       <path d="M8.1 10.4V7.9a3.9 3.9 0 0 1 7.8 0v2.5" fill="none" stroke="currentColor"
+        stroke-width="1.9"/>`,
+  mail:`<rect x="2.8" y="5.4" width="18.4" height="13.2" rx="2.1" fill="none"
+        stroke="currentColor" stroke-width="1.8"/>
+       <path d="M3.6 7l8.4 6 8.4-6" fill="none" stroke="currentColor" stroke-width="1.8"
+        stroke-linecap="round" stroke-linejoin="round"/>`,
+  globe:`<circle cx="12" cy="12" r="8.6" fill="none" stroke="currentColor" stroke-width="1.7"/>
+       <path d="M3.4 12h17.2" fill="none" stroke="currentColor" stroke-width="1.5"/>
+       <path d="M12 3.4c2.7 2.5 2.7 15.1 0 17.2M12 3.4c-2.7 2.5-2.7 15.1 0 17.2"
+        fill="none" stroke="currentColor" stroke-width="1.5"/>`,
+  chart:`<path d="M4.2 4.4v15.2h15.4" fill="none" stroke="currentColor" stroke-width="1.9"
+        stroke-linecap="round"/>
+       <path d="M7.2 15.6l3.6-4.8 3.3 2.5 4.1-6" fill="none" stroke="currentColor"
+        stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/>`
+};
+
+/* label -> tile. g = glyph (official mark from icons.js, or a
+   generic one from G below); m = wordmark text; fg = ink override */
+const ICONS = {
+  /* ---- official Simple Icons marks ---- */
+  "aws":{bg:'#ff9900', fg:'#232f3e', g:'amazonaws'},
+  "terraform":{bg:'#844fba', g:'terraform'},
+  "kubernetes":{bg:'#326ce5', g:'kubernetes'},
+  "docker":{bg:'#2496ed', g:'docker'},
+  "helm":{bg:'#0f1689', g:'helm'},
+  "linux":{bg:'#fcc624', g:'linux'},
+  "git":{bg:'#f03c2e', g:'git'},
+  "github actions":{bg:'#2088ff', g:'githubactions'},
+  "github":{bg:'#181717', g:'github'},
+  "prometheus":{bg:'#e6522c', g:'prometheus'},
+  "grafana":{bg:'#f46800', g:'grafana'},
+  "bash":{bg:'#4eaa25', g:'gnubash'},
+  "python":{bg:'#3776ab', g:'python'},
+  "argo cd":{bg:'#ef7b4d', g:'argo'},
+  "jenkins":{bg:'#d24939', g:'jenkins'},
+  "ansible":{bg:'#ee0000', g:'ansible'},
+  "vault":{bg:'#ffec6e', fg:'#1b1b1b', g:'vault'},
+  "nginx":{bg:'#009639', g:'nginx'},
+  "mysql":{bg:'#4479a1', g:'mysql'},
+  "opensearch":{bg:'#005eb8', g:'opensearch'},
+  "fluent bit":{bg:'#49bda5', g:'fluentbit'},
+  "backstage":{bg:'#9bf0e1', g:'backstage'},
+  "opentelemetry":{bg:'#000000', g:'opentelemetry'},
+  "vmware":{bg:'#607078', g:'vmware'},
+  "slack":{bg:'#4a154b', g:'slack'},
+  "azure":{bg:'#0078d4', g:'microsoftazure'},
+  "ecs":{bg:'#ff9900', fg:'#232f3e', g:'amazonecs'},
+  "ec2":{bg:'#ff9900', fg:'#232f3e', g:'amazonec2'},
+  "s3":{bg:'#569a31', g:'amazons3'},
+  "rds":{bg:'#527fff', g:'amazonrds'},
+  "cloudwatch":{bg:'#ff4f8b', g:'amazoncloudwatch'},
+  "eks":{bg:'#ff9900', fg:'#232f3e', g:'amazoneks'},
+  "route 53":{bg:'#8c4fff', g:'amazonroute53'},
+  "lambda":{bg:'#ff9900', fg:'#232f3e', g:'awslambda'},
+  "fargate":{bg:'#ff9900', fg:'#232f3e', g:'awsfargate'},
+  "c / c++":{bg:'#00599c', g:'cplusplus'},
+  "java":{bg:'#000000', g:'openjdk'},
+  "linkedin":{bg:'#0a66c2', g:'linkedin'},
+  "control tower":{bg:'#e7157b', g:'awsorganizations'},
+  "trivy":{bg:'#1904da', g:'trivy'},
+  "dynamodb":{bg:'#4053d6', g:'amazondynamodb'},
+  "api gateway":{bg:'#ff4f8b', g:'amazonapigateway'},
+  /* ---- no official mark published: brand-coloured wordmark tiles ---- */
+  'loki':{bg:'#f4a100', m:'LOKI'},
+  'opa':{bg:'#566069', m:'OPA'},
+  'zabbix':{bg:'#d40000', m:'ZB'},
+  'karpenter':{bg:'#326ce5', m:'KP'},
+  'infracost':{bg:'#8b5cf6', m:'IC'},
+  'terragrunt':{bg:'#844fba', m:'TG'},
+  'cosign':{bg:'#2f6b75', g:'lock'},
+  'alertmanager':{bg:'#e6522c', m:'AM'},
+  /* ---- AWS services with no Simple Icons mark: real AWS category colours ---- */
+  'athena':{bg:'#8c4fff', m:'ATH'},
+  'cur':{bg:'#8c4fff', m:'CUR'},
+  'vpc':{bg:'#8c4fff', m:'VPC'},
+  'tgw':{bg:'#8c4fff', m:'TGW'},
+  'iam':{bg:'#dd344c', g:'lock'},
+  'secrets manager':{bg:'#dd344c', m:'SM'},
+  'codedeploy':{bg:'#2f7d3a', m:'CD'},
+  'ecr':{bg:'#ed7100', m:'ECR'},
+  /* ---- credentials & education ---- */
+  'hust':{bg:'#b3121d', img:'logos/hust.png', ar:0.663, big:1, hs:1.18},
+  'soict':{bg:'#b3121d', img:'logos/soict.png', ar:3.419, big:1, byw:1},
+  'toeic':{bg:'#0b4f9e', img:'logos/toeic.png', ar:1.477, big:1},
+  'saa':{bg:'#232f3e', img:'logos/aws-saa.png', bare:1, ar:0.875, big:1},
+  'sap':{bg:'#15606e', img:'logos/aws-sap.png', bare:1, ar:0.875, big:1},
+  'cka':{bg:'#326ce5', m:'CKA'},
+  'excellent graduate':{bg:'#c9971c', img:'logos/medal-hust.png', bare:1, ar:1.006, big:1, hs:1.35},
+  'fpt':{bg:'#f37021', img:'logos/fpt.png', ar:1.226, big:1},
+  /* ---- the real project stack ---- */
+  'typescript':{bg:'#3178c6', g:'typescript'},
+  'react':{bg:'#087ea4', g:'react'},
+  'bitbucket':{bg:'#0052cc', g:'bitbucket'},
+  'sonarqube':{bg:'#4e9bcd', g:'sonarqube'},
+  'gitlab':{bg:'#fc6d26', g:'gitlab'},
+  'docusaurus':{bg:'#3ecc5f', g:'docusaurus'},
+  'splunk':{bg:'#000000', g:'splunk'},
+  'postgresql':{bg:'#4169e1', g:'postgresql'},
+  'cognito':{bg:'#dd344c', g:'amazoncognito'},
+  'entra id':{bg:'#0078d4', g:'microsoft'},
+  'control tower':{bg:'#e7157b', m:'CT'},
+  'organizations':{bg:'#e7157b', g:'awsorganizations'},
+  'aft':{bg:'#e7157b', m:'AFT'},
+  'cloudformation':{bg:'#e7157b', m:'CFN'},
+  'step functions':{bg:'#e7157b', m:'SFN'},
+  'eventbridge':{bg:'#e7157b', m:'EVB'},
+  'codepipeline':{bg:'#2f7d3a', m:'CP'},
+  'codebuild':{bg:'#2f7d3a', m:'CB'},
+  'service catalog':{bg:'#e7157b', m:'SC'},
+  'security hub':{bg:'#dd344c', m:'SEC'},
+  'guardduty':{bg:'#dd344c', m:'GD'},
+  'inspector':{bg:'#dd344c', m:'INS'},
+  'macie':{bg:'#dd344c', m:'MAC'},
+  'config':{bg:'#e7157b', m:'CFG'},
+  'cloudtrail':{bg:'#e7157b', m:'CT'},
+  'network firewall':{bg:'#8c4fff', m:'NFW'},
+  'transit gateway':{bg:'#8c4fff', m:'TGW'},
+  'image builder':{bg:'#ed7100', m:'AMI'},
+  'ipam':{bg:'#8c4fff', m:'IPAM'},
+  'managed microsoft ad':{bg:'#dd344c', m:'AD'},
+  'iam identity center':{bg:'#dd344c', g:'amazoniam'},
+  'scp':{bg:'#dd344c', m:'SCP'},
+  'checkov':{bg:'#6a4ff0', m:'CKV'},
+  'veracode':{bg:'#003f5f', m:'VC'},
+  'blackduck':{bg:'#000000', m:'BD'},
+  'coverity':{bg:'#0062a3', m:'CV'},
+  'nexus':{bg:'#1b1c30', m:'NXS'},
+  'servicenow':{bg:'#62d84e', m:'SN'},
+  'crowdstrike':{bg:'#e01a22', m:'CS'},
+  'hashicorp':{bg:'#000000', g:'hashicorp'},
+  /* ---- generic, no vendor ---- */
+  'email':{bg:'#0b7fc4', g:'mail'},
+  'calendar':{bg:'#2f6b75', m:'CAL'},
+  'computer networks':{bg:'#4a6572', g:'net'},
+  'distributed systems':{bg:'#5b6b74', g:'net'},
+  'operating systems':{bg:'#44555f', g:'chip'},
+  'algorithms':{bg:'#6b5b7b', g:'chart'},
+  'adrs':{bg:'#6b7280', g:'book'},
+  'runbooks':{bg:'#6b7280', g:'book'},
+  'mentoring':{bg:'#6b7280', m:'M'},
+  'networking':{bg:'#8c4fff', g:'net'}
+};
+
+/* spelling variants → canonical key */
+const ALIAS = {
+  'gh actions':'github actions','actions':'github actions','argocd':'argo cd',
+  'argo rollouts':'argo cd','argo sync':'argo cd','k8s':'kubernetes','eks / kubernetes':'eks',
+  'kubernetes / eks':'eks','shell':'bash','sh':'bash','conftest':'opa','opa / conftest':'opa',
+  'grype':'trivy','otel':'opentelemetry','tracing':'opentelemetry','postgres':'rds',
+  'postgresql':'rds','athena + cur':'athena','cur + athena':'athena','transit gateway':'tgw',
+  'dns':'route 53','iam least-privilege':'iam','oidc federation':'iam','oidc':'iam',
+  'graviton':'ec2','savings plans':'cur','aws skill builder':'aws','awscli':'aws',
+  'solutions architect':'saa','saa-c03':'saa','terraform associate':'terraform',
+  'hashicorp terraform associate':'terraform','toeic 920':'toeic',
+  'certified kubernetes administrator':'cka','cka — certified kubernetes administrator':'cka',
+  'solutions architect — associate':'saa','solutions architect — professional':'sap',
+  'sap-c02':'sap','aws saa':'saa','aws sap':'sap','school of ict':'soict',
+  'ecs fargate':'ecs','rds postgresql':'postgresql','amazon ecs':'ecs',
+  'aws':'aws','amazon cognito':'cognito','microsoft entra id':'entra id',
+  'on-prem ad / entra id':'entra id','identity center':'iam identity center',
+  'service control policies':'scp','ec2 image builder':'image builder',
+  'golden amis':'image builder','aws control tower':'control tower',
+  'aws organizations':'organizations','aws config':'config',
+  'aws network firewall':'network firewall','aws transit gateway':'transit gateway',
+  'aws codepipeline':'codepipeline','aws codebuild':'codebuild',
+  'aws ipam':'ipam','aws ram':'ipam','amazon inspector':'inspector',
+  'nexus repository':'nexus','jenkins shared libraries':'jenkins',
+  'ecs fargate':'ecs','opentelemetry tracing':'opentelemetry','terraform (intro)':'terraform',
+  'iam least-privilege':'iam','grafana dashboards':'grafana','loki / log pipelines':'loki',
+  'incident command':'prometheus','slo design':'grafana','prometheus / alertmanager':'prometheus'
+};
+
+function iconFor(raw, cls){
+  if(!raw) return '';
+  const norm = v => String(v).toLowerCase().trim().replace(/&amp;/g,'&').replace(/\s+/g,' ');
+  let key = norm(raw);
+  if(ALIAS[key]) key = ALIAS[key];
+  let d = ICONS[key];
+  if(!d){                                 /* fall back to the leading token */
+    let k2 = norm(primaryToken(raw));
+    if(ALIAS[k2]) k2 = ALIAS[k2];
+    d = ICONS[k2];
+  }
+  if(!d) return '';
+  const style = `--ic-bg:${d.bg};${d.fg?`--ic-fg:${d.fg};`:''}`;
+  let body, kind = '';
+  let ar = '';
+  if(d.img){                                                 /* real artwork */
+    body = `<img src="${d.img}" alt="">`;
+    kind = d.bare ? ' bare' : ' pic';
+    if(d.ar){ kind += ' ar'; ar = `--ar:${d.ar};`; }
+    if(d.byw) kind += ' byw';
+    if(d.hs)  ar += `--hs:${d.hs};`;
+  }else if(d.g && typeof SI !== 'undefined' && SI[d.g]){     /* official mark */
+    body = `<svg viewBox="0 0 24 24" data-si="${d.g}" fill="currentColor"><path d="${SI[d.g]}"/></svg>`;
+  }else if(d.g && G[d.g]){                                   /* generic mark */
+    body = `<svg viewBox="0 0 24 24" fill="currentColor">${G[d.g]}</svg>`;
+  }else{
+    body = d.m; kind = ' wm';
+  }
+  if(d.big) kind += ' xl';
+  return `<span class="ic${kind}${cls?' '+cls:''}" style="${style}${ar}">${body}</span>`;
+}
+/* "Terraform + Terragrunt" → "Terraform"; "AWS — VPC, EKS" → "AWS" */
+function primaryToken(label){
+  return String(label).split(/[—/+(,·]/)[0].trim();
+}
+
+/* the concurrent cursors — named like CI matrix jobs */
+const RUNNERS = [
+  {name:'runner-1', c:'#0b7fc4'},
+  {name:'runner-2', c:'#b03f8c'},
+  {name:'runner-3', c:'#13907f'},
+  {name:'runner-4', c:'#c1631a'}
+];
+
+/* ============================================================
+   EXPERIENCE — FPT Software, then one page per project.
+   All of this is real; only the contact handles are placeholders.
+   ============================================================ */
+const PROJECTS = [
+  {
+    id:'proj-a', letter:'A', dash:'d-short', name:'Project A · IDP', st:'blue', ic:'backstage',
+    customer:'Japan customer · automotive enterprise',
+    title:'Internal Developer Platform',
+    role:'Platform Engineer', when:'Jul 2025 — present',
+    desc:'A self-service portal for a large automotive enterprise: launch an AWS '+
+         'workload in about an hour, not a month.',
+    stats:[['~1 hour','to launch a workload, was ~1 month'],
+           ['~30 teams','onboarded so far'],
+           ['14','golden-path templates']],
+    pipe:['Backstage form','API Gateway','DynamoDB','Lambda','Landing Zone','AWS account','deployed'],
+    pipeNote:'Under 10 clicks. No tickets, no waiting on another department.',
+    resp:[
+      'Built the IDP from scratch on Backstage, hosted on Amazon ECS',
+      '14 Scaffolder golden paths, each backed by predefined Terraform',
+      'Event-driven backend: API Gateway, DynamoDB, Lambda',
+      'Vends a dedicated AWS account via Landing Zone automation',
+      'Corporate SSO: Managed AD, Identity Center, Cognito-Entra ID',
+      'TypeScript/React plugins: accounts, cost, Security Hub, certs',
+      'Teams, systems and dependencies modelled in the Software Catalog',
+      'SonarQube, Checkov, Veracode and Docusaurus docs-as-code'
+    ],
+    stack:['Backstage','TypeScript','Terraform','ECS','Lambda','API Gateway',
+           'DynamoDB','Cognito','Bitbucket']
+  },
+  {
+    id:'proj-b', letter:'B', dash:'d-long', name:'Project B · Landing Zone', st:'orange', ic:'control tower',
+    customer:'Germany customer · global enterprise',
+    title:'Enterprise AWS Landing Zone',
+    role:'Cloud Engineer', when:'Aug 2024 — Jul 2025',
+    desc:'An enterprise Landing Zone over the global and China partitions: governance, '+
+         'central security, inspected hub-and-spoke networking.',
+    stats:[['1,000+','AWS accounts under governance'],
+           ['2','AWS partitions — global and China'],
+           ['< 1 hour','account onboarding, was days']],
+    pipe:['request','AFT pipeline','global baseline','per-account TF','Step Functions','ServiceNow/CMDB','live'],
+    pipeNote:'Three-phase customisation, with CMDB registration on the way out.',
+    resp:[
+      'Ran a Landing Zone of 1,000+ accounts over 2 AWS partitions',
+      'Account vending with Control Tower Account Factory (AFT)',
+      'Three-phase customisation: baseline, per-account TF, hooks',
+      'Guardrails: SCPs, Config, GuardDuty, Inspector, Macie',
+      'Security Hub and IAM Access Analyzer as delegated admin',
+      'GitHub Actions CI/CD: multi-region matrices, OIDC roles',
+      'Hub-and-spoke: Transit Gateway, Network Firewall inspection',
+      'Golden-AMI factory on Image Builder, CIS-hardened, SCP-enforced'
+    ],
+    stack:['Control Tower','AFT','Terraform','GitHub Actions','Transit Gateway',
+           'Image Builder','SCP','Security Hub','GuardDuty']
+  },
+  {
+    id:'proj-c', letter:'C', dash:'d-dashdot', name:'Project C · DevSecOps', st:'green', ic:'jenkins',
+    customer:'Singapore customer',
+    title:'CI/CD Governance & DevSecOps',
+    role:'DevOps Engineer', when:'May 2023 — Jan 2024',
+    desc:'Standardised CI/CD and security across teams: central pipeline components, '+
+         'automated Jenkins provisioning, enterprise scanning.',
+    stats:[['1 repo','governs every CI definition'],
+           ['4 stages','standardised: build, scan, test, deploy'],
+           ['0','pipelines hand-made in the console']],
+    pipe:['seed job','shared library','build','scan','test','deploy','Nexus'],
+    pipeNote:'Every stage runs in an isolated Kubernetes pod from a golden image.',
+    resp:[
+      'Jenkins Shared Libraries for build, scan, test and deploy',
+      'Centralised every CI Jenkinsfile into one governed repo',
+      'Seed jobs that create and manage Jenkins jobs automatically',
+      'Kubernetes podTemplates on golden images for isolated stages',
+      'BlackDuck, Coverity and SonarQube in the pipelines',
+      'Containerised build and deploy, artifacts in Nexus',
+      'Improved branching consistency and CI governance on GitLab',
+      'Worked across AWS and EKS for reliability and scaling'
+    ],
+    stack:['Jenkins','GitLab','Docker','Kubernetes','Terraform','Ansible',
+           'Nexus','SonarQube','Coverity']
+  }
+];
+
+/* ---- the employer page: FPT Software, fanning out to A, B, C ---- */
+const FPT_SCENE = {
+  id:'fpt', name:'FPT Software', len:2.6, vw:1180, vh:773,
+  steps:[
+    {k:'rect', id:'fpt', track:0, x:70, y:96, w:430, h:278, st:'blue',
+     shape:'rounded', cls:'grad shadow', sel:1, dash:'d-dot', w8:1},
+    {k:'type', id:'fpt', track:0, w8:1.4, lines:[
+      {cls:'h2', t:'FPT Software'},
+      {cls:'dim', t:'DevOps / Platform Engineer · Feb 2023 — present\nHanoi, Vietnam'}]},
+    {k:'reveal', id:'fpt', track:0, w8:1.1, items:[
+      {cls:'icrow', html:['FPT']},
+      {cls:'p', t:'Outsourcing engineer on international accounts — three projects for customers in Japan, Germany and Singapore.'}
+    ]},
+
+    {k:'rect', id:'gal', track:0, x:70, y:402, w:430, h:338, st:'gray',
+     shape:'container', cap:'photos', meta:'click to enlarge', w8:.8},
+    {k:'reveal', id:'gal', track:0, w8:1.4, items:[
+      {cls:'gallery', html:[
+        ['platform-team',    'Platform team'],
+        ['me-and-my-boss',   'Me with my boss :))'],
+        ['fhn-ngt-team',     'FHN NGT team']
+      ]}
+    ]},
+
+    {k:'rect', id:'pa', track:1, x:570, y:96, w:540, h:188, st:'blue',
+     shape:'cut', cls:'shadow', w8:.8},
+    {k:'type', id:'pa', track:1, w8:1, lines:[
+      {cls:'h3', t:'project a · jul 2025 — present'},
+      {cls:'h2', t:'Internal Developer Platform'}]},
+    {k:'reveal', id:'pa', track:1, w8:.9, items:[
+      {cls:'dim', t:'Japan customer · Platform Engineer'},
+      {cls:'li', t:'Backstage portal — launch an AWS workload in ~1 hour'}
+    ]},
+    {k:'wire', from:['fpt','r'], to:['pa','l'], track:1, label:'A', head:'classic', w8:.5},
+
+    {k:'rect', id:'pb', track:2, x:570, y:312, w:540, h:188, st:'orange',
+     shape:'cut', cls:'shadow', w8:.8},
+    {k:'type', id:'pb', track:2, w8:1, lines:[
+      {cls:'h3', t:'project b · aug 2024 — jul 2025'},
+      {cls:'h2', t:'Enterprise AWS Landing Zone'}]},
+    {k:'reveal', id:'pb', track:2, w8:.9, items:[
+      {cls:'dim', t:'Germany customer · Cloud Engineer'},
+      {cls:'li', t:'1,000+ accounts, global and China partitions'}
+    ]},
+    {k:'wire', from:['fpt','r'], to:['pb','l'], track:2, label:'B', head:'classic', w8:.5},
+
+    {k:'rect', id:'pc', track:3, x:570, y:528, w:540, h:188, st:'green',
+     shape:'cut', cls:'shadow', w8:.8},
+    {k:'type', id:'pc', track:3, w8:1, lines:[
+      {cls:'h3', t:'project c · may 2023 — jan 2024'},
+      {cls:'h2', t:'CI/CD Governance & DevSecOps'}]},
+    {k:'reveal', id:'pc', track:3, w8:.9, items:[
+      {cls:'dim', t:'Singapore customer · DevOps Engineer'},
+      {cls:'li', t:'Jenkins shared libraries, seed jobs, security gates'}
+    ]},
+    {k:'wire', from:['fpt','r'], to:['pc','l'], track:3, label:'C', head:'classic', w8:.5}
+  ]
+};
+
+function projScene(j){
+  /* These pages used to be 1000px tall, which meant the viewport
+     scaled them down to ~0.85 and the text came out smaller than
+     every other page. Folding the summary, the headline numbers and
+     the flow into one card drops the page to ~800px, so it renders
+     at the same size as the rest of the deck. */
+  const CAP = 40, PAD = 28, GAP = 24;
+  const lines = (t, w, px=13.5) => Math.max(1, Math.ceil(String(t).length * px * 0.53 / w));
+  const chipRows = (items, w, per) => {
+    let row = 0, rows = 1;
+    items.forEach(c=>{
+      const cw = per(String(c).length);
+      if(row + cw > w){ rows++; row = cw; } else row += cw; });
+    return rows;
+  };
+  const W = 1040, inner = W - PAD;
+
+  /* one summary card: title, description, numbers, flow */
+  const hdrH = PAD + 19 + 31 + 19
+             + lines(j.desc, inner, 14) * 23
+             + 50                                        /* stat row */
+             + chipRows(j.pipe, inner, n=>18 + 48 + n*6.1 + 20) * 38
+             + lines(j.pipeNote, inner, 12.5) * 20
+             + 6 * 6;
+
+  /* responsibilities, two columns, one line each */
+  const cW = inner / 2 - 14 - 18;
+  const respRows = Math.ceil(j.resp.reduce((n,t)=>n + lines(t, cW), 0) / 2);
+  const respH = CAP + PAD + 16 + respRows * 21 + Math.ceil(j.resp.length/2) * 7;
+
+  const stkRows = chipRows(j.stack, inner, n=>6 + 42 + 7 + n*6.2 + 26);
+  const stkH = CAP + PAD + stkRows * 38 + (stkRows - 1) * 5;
+
+  const yResp = 52 + hdrH + GAP;
+  const yStk  = yResp + respH + GAP;
+
+  return {
+    id:j.id, name:j.name, len:2.8, vw:1180, vh:yStk + stkH + 26,
+    steps:[
+      {k:'rect', id:'hdr', track:0, x:70, y:52, w:W, h:hdrH, st:j.st,
+       shape:'rounded', cls:'grad shadow', sel:1, dash:j.dash, ic:j.ic, w8:.9},
+      {k:'type', id:'hdr', track:0, w8:1.3, lines:[
+        {cls:'h3', t:'project '+j.letter.toLowerCase()+' · '+j.when},
+        {cls:'h2', t:j.title}]},
+      {k:'reveal', id:'hdr', track:0, w8:1.8, items:[
+        {cls:'dim',   t:j.customer+' · '+j.role},
+        {cls:'p',     t:j.desc},
+        {cls:'stats', html:j.stats},
+        {cls:'flowline', html:j.pipe},
+        {cls:'dim',   t:j.pipeNote}
+      ]},
+
+      {k:'rect', id:'resp', track:1, x:70, y:yResp, w:W, h:respH, st:'purple',
+       shape:'container', cap:'what_i_did', meta:j.role, ic:'git', w8:.9},
+      {k:'reveal', id:'resp', track:1, cols:2, w8:2.2,
+       items:j.resp.map(t=>({cls:'li', t}))},
+      {k:'wire', from:['hdr','b'], to:['resp','t'], track:1, head:'block', w8:.3},
+
+      {k:'rect', id:'stk', track:2, x:70, y:yStk, w:W, h:stkH, st:'green',
+       shape:'container', cls:'group thick', cap:'technologies', meta:'used daily',
+       ic:'terraform', w8:.8},
+      {k:'reveal', id:'stk', track:2, w8:1.6, items:[{cls:'chips', html:j.stack}]},
+      {k:'wire', from:['resp','b'], to:['stk','t'], track:2, head:'crow', w8:.3}
+    ]
+  };
+}
+
+/* ============================================================
+   SCENES — the storyboard.
+   step kinds: rect | type | reveal | bars | wire
+   track      : which cursor draws it (steps in a track are serial,
+                tracks run concurrently; dependencies are inferred)
+   w8         : relative duration weight
+   ============================================================ */
+const SCENES = [
+
+/* ───────────────────────────── 1. TITLE BLOCK ───────────────── */
+{
+  /* The credentials used to sit here too, but they have a page of their
+     own (03), so this is just the hero now — centred, and using the whole
+     canvas, which at the document's single zoom means genuinely bigger. */
+  id:'title', name:'Title block', len:2.6, vw:1180, vh:773,
+  steps:[
+    {k:'rect', id:'photo', mo:1, track:0, x:100, y:140, w:320, h:400, st:'white',
+     shape:'rounded', cls:'shadow', img:'avatar.jpg', alt:'Lỗ Hoàng Tiến Đạt (David)',
+     pos:'50% 24%', w8:1.2},
+
+    {k:'rect', id:'hero', mo:2, track:1, x:460, y:140, w:620, h:400, st:'blue',
+     shape:'rounded', cls:'grad shadow bigtext', sel:1, dash:'d-long', w8:1.1},
+    {k:'type', id:'hero', track:1, w8:2.2, lines:[
+      {cls:'h1',  t:'Lỗ Hoàng Tiến Đạt'},
+      {cls:'h2',  t:'DevOps & Platform Engineer'},
+      {cls:'dim', t:'David · Hanoi, Vietnam · UTC+7\nComputer Engineering, SOICT–HUST K66'}
+    ]},
+    {k:'reveal', id:'hero', track:1, w8:1.3, items:[
+      {cls:'p', t:'I draw the architecture, then I build it, then I keep it boring.'},
+      {cls:'icrow', html:['AWS','Terraform','Backstage','Kubernetes','GitHub Actions','Linux']}
+    ]},
+    {k:'wire', from:['photo','r'], to:['hero','l'], track:0, head:'block', w8:.5},
+
+    {k:'rect', id:'open', mo:3, track:0, x:440, y:578, w:300, h:58, st:'green',
+     shape:'pill', cls:'shadow', center:1, w8:.7},
+    {k:'type', id:'open', track:0, w8:.8, lines:[{cls:'h3', t:'● open to work'}]}
+  ]
+},
+
+/* ───────────────────────────── 2. ABOUT ─────────────────────── */
+{
+  id:'about', name:'About me', len:2.4, vw:1180, vh:659,
+  steps:[
+    {k:'rect', id:'who', track:0, x:80, y:110, w:530, h:300, st:'blue', shape:'container',
+     cap:'about_me', meta:'introduction', ic:'soict', sel:1, dash:'d-short', w8:1},
+    {k:'reveal', id:'who', track:0, w8:2.2, items:[
+      {cls:'p', t:'I’m a platform engineer from Hanoi. I build the layer between "we have AWS" and "a team can launch a production workload this afternoon without filing a ticket".'},
+      {cls:'li', t:'Terraform-first — golden paths over hand-built infrastructure'},
+      {cls:'li', t:'Pipelines over tickets — the golden path is the fast path'},
+      {cls:'li', t:'SLOs over dashboards — page on symptoms, graph the causes'},
+      {cls:'li', t:'Diagrams over meetings — hence this page'}
+    ]},
+
+    {k:'rect', id:'now', track:1, x:680, y:110, w:420, h:170, st:'yellow', shape:'note', cls:'shadow', w8:.8},
+    {k:'type', id:'now', track:1, w8:.8, lines:[{cls:'h3', t:'currently'}]},
+    {k:'reveal', id:'now', track:1, w8:1.1, items:[
+      {cls:'p', t:'Building an internal developer platform on Backstage for a Japanese automotive enterprise: 14 golden-path templates, self-service AWS accounts, one portal.'},
+      {cls:'dim', t:'~30 teams onboarded · lead time ~1 month → ~1 hour'}
+    ]},
+    {k:'wire', from:['who','r'], to:['now','l'], track:1, label:'currently', head:'classic', w8:.5},
+
+    {k:'rect', id:'stack', track:2, x:680, y:306, w:420, h:291, st:'purple', shape:'container',
+     cap:'daily_drivers', meta:'stack', ic:'terraform', cls:'dotted', w8:.8},
+    {k:'reveal', id:'stack', track:2, w8:1.6, items:[
+      {cls:'chips', html:['AWS','Terraform','Backstage','TypeScript','Python','ECS','Lambda','GitHub Actions','Bitbucket','Control Tower','Kubernetes','Docker']}
+    ]},
+    {k:'wire', from:['who','b'], to:['stack','l'], track:2, head:'oval', w8:.5}
+  ]
+},
+
+/* ──────────────────── 3. EDUCATION & CERTIFICATIONS ─────────── */
+{
+  id:'education', name:'Education & certs', len:2.8, vw:1180, vh:774,
+  steps:[
+    {k:'rect', id:'edu', track:0, x:70, y:88, w:640, h:268, st:'blue', shape:'container',
+     cap:'education', meta:'B.Eng · 2021 — 2025', w8:.9},
+    {k:'type', id:'edu', track:0, w8:1.5, lines:[
+      {cls:'h2', t:'Hanoi University of Science & Technology'}]},
+    {k:'reveal', id:'edu', track:0, w8:1.4, items:[
+      {cls:'icrow', html:['HUST','SOICT']},
+      {cls:'p', t:'B.Eng — Computer Engineering (IT2), K66'},
+      {cls:'dim', t:'School of Information & Communication Technology · Hanoi, Vietnam'}
+    ]},
+
+    {k:'rect', id:'hon', track:0, x:70, y:376, w:640, h:152, st:'yellow',
+     cls:'grad shadow badge-mid', sel:1, dash:'d-dashdot',
+     ic:'excellent graduate', w8:.8},
+    {k:'type', id:'hon', track:0, w8:.9, lines:[
+      {cls:'h3', t:'graduation honours'},
+      {cls:'h2', t:'Excellent Graduate'}]},
+    {k:'reveal', id:'hon', track:0, w8:1, items:[
+      {cls:'dim', t:'Tốt nghiệp xuất sắc · medal awarded by HUST, 2025'},
+      {cls:'li',  t:'3 × Academic Achievement Scholarship, grade Excellent'}
+    ]},
+
+    {k:'rect', id:'saa', track:1, x:750, y:88, w:360, h:124, st:'orange',
+     shape:'hex', cls:'shadow badge-mid', ic:'saa', w8:.7},
+    {k:'type', id:'saa', track:1, w8:1.1, lines:[
+      {cls:'h3', t:'aws certified'},
+      {cls:'h2', t:'Solutions Architect'},
+      {cls:'dim', t:'Associate · SAA-C03'}]},
+    {k:'wire', from:['edu','r'], to:['saa','l'], track:1, head:'open', w8:.45},
+
+    {k:'rect', id:'sap', track:2, x:750, y:228, w:360, h:124, st:'blue',
+     shape:'hex', cls:'shadow badge-mid', ic:'sap', w8:.7},
+    {k:'type', id:'sap', track:2, w8:1.1, lines:[
+      {cls:'h3', t:'aws certified'},
+      {cls:'h2', t:'Solutions Architect'},
+      {cls:'dim', t:'Professional · SAP-C02'}]},
+    {k:'wire', from:['edu','r'], to:['sap','l'], track:2, head:'open', w8:.45},
+
+    {k:'rect', id:'toeic', track:3, x:750, y:368, w:360, h:160, st:'green',
+     shape:'cut', cls:'shadow badge-mid', ic:'toeic', w8:.7},
+    {k:'type', id:'toeic', track:3, w8:1.1, lines:[
+      {cls:'h3', t:'ets toeic'},
+      {cls:'h2', t:'920 / 990'},
+      {cls:'dim', t:'Listening 495 · Reading 425'}]},
+    {k:'wire', from:['edu','r'], to:['toeic','l'], track:3, head:'open', w8:.45},
+
+    {k:'rect', id:'gal', track:0, x:70, y:548, w:1040, h:198, st:'gray',
+     shape:'container', cls:'group hair', cap:'the paperwork',
+     meta:'click to enlarge', ic:'hust', w8:.8},
+    {k:'reveal', id:'gal', track:0, w8:1.6, items:[
+      {cls:'gallery', strip:1, gc:7, gh:130, html:[
+        ['grad-2025',           'Graduation day — HUST, 2025'],
+        ['degree-and-box',      'The degree and the HUST medal box'],
+        ['bachelor-degree',     'B.Eng Computer Engineering — rank: Xuất sắc (Excellent)'],
+        ['toeic-920',           'TOEIC 920 — Listening 495, Reading 425'],
+        ['scholarship-2025-s2', 'Academic Achievement Scholarship — 2024–25, semester 2'],
+        ['scholarship-2025-s1', 'Academic Achievement Scholarship — 2024–25, semester 1'],
+        ['scholarship-2024-s2', 'Academic Achievement Scholarship — 2023–24, semester 2']
+      ]}
+    ]},
+    {k:'wire', from:['hon','b'], to:['gal','t'], track:0, head:'crow', w8:.4}
+  ]
+},
+
+/* ──────────── 4-7. FPT SOFTWARE, then one page per project ──── */
+FPT_SCENE,
+...PROJECTS.map(projScene),
+
+/* ───────────────────────────── 7. SKILLS ───────────────────── */
+{
+  id:'skills', name:'Toolbox', len:2.8, vw:1180, vh:720,
+  steps:[
+    {k:'rect', id:'g1', mo:1, track:0, x:70, y:84, w:500, h:276, st:'blue', shape:'container',
+     cap:'cloud &amp; infrastructure', meta:'primary', ic:'aws', sel:1, dash:'d-dot', w8:.8},
+    {k:'bars', id:'g1', track:0, st:'blue', w8:1.6, items:[
+      ['AWS — multi-account at 1,000+ scale',92],
+      ['Control Tower, Organizations, AFT',88],
+      ['Terraform',90],
+      ['Networking — Transit Gateway, VPC, IPAM',82],
+      ['Kubernetes / EKS',72]
+    ]},
+    {k:'rect', id:'g3', mo:3, track:0, x:70, y:388, w:500, h:244, st:'orange', shape:'container',
+     cap:'observability &amp; ops', meta:'primary', ic:'prometheus', cls:'dotted', w8:.8},
+    {k:'bars', id:'g3', track:0, st:'orange', w8:1.4, items:[
+      ['CloudWatch — logs, metrics, alarms',84],
+      ['Security Hub, GuardDuty, Inspector',80],
+      ['Splunk forwarding',68],['OpenTelemetry',60]
+    ]},
+
+    {k:'rect', id:'g2', mo:2, track:1, x:610, y:84, w:500, h:276, st:'purple', shape:'container',
+     cap:'delivery &amp; automation', meta:'primary', ic:'github actions', w8:.8},
+    {k:'bars', id:'g2', track:1, st:'purple', w8:1.6, items:[
+      ['Backstage — plugins, templates, catalog',90],
+      ['GitHub Actions',86],['Jenkins — shared libraries, seed jobs',82],
+      ['TypeScript / React',80],['Python',84]
+    ]},
+    {k:'rect', id:'g4', mo:4, track:1, x:610, y:388, w:500, h:292, st:'green', shape:'container',
+     cap:'security, finops &amp; craft', meta:'supporting', ic:'cosign', cls:'group', w8:.8},
+    {k:'reveal', id:'g4', track:1, w8:1.6, items:[
+      {cls:'dim', t:'Not my title, but part of every change I ship:'},
+      {cls:'chips', html:['IAM least-privilege','OIDC federation','SCP','Checkov','SonarQube','Veracode','Secrets Manager','Image Builder','ADRs','runbooks']},
+      {cls:'mono', t:'certified: AWS SAP-C02 · SAA-C03 · TOEIC 920'}
+    ]},
+
+    {k:'wire', from:['g1','r'], to:['g2','l'], track:2, head:'open', w8:.5},
+    {k:'wire', from:['g3','r'], to:['g4','l'], track:2, head:'open', w8:.5}
+  ]
+},
+
+/* ───────────────────────────── 8. CONTACT ──────────────────── */
+{
+  id:'contact', name:'Contact', len:2.6, vw:1180, vh:600,
+  steps:[
+    {k:'rect', id:'you', mo:1, track:0, x:70, y:258, w:160, h:76, st:'green', shape:'ellipse', center:1, w8:.6},
+    {k:'type', id:'you', track:0, w8:.5, lines:[{cls:'h2', t:'You'}]},
+    {k:'rect', id:'dec', mo:2, track:0, x:290, y:244, w:180, h:104, st:'yellow', shape:'rhombus', center:1, w8:.7},
+    {k:'type', id:'dec', track:0, w8:.6, lines:[{cls:'h3', t:'which\nchannel?'}]},
+    {k:'wire', from:['you','r'], to:['dec','l'], track:0, head:'block', w8:.4},
+    {k:'rect', id:'end', mo:6, track:0, x:880, y:222, w:230, h:148, st:'green',
+     shape:'rounded', cls:'grad shadow', sel:1, dash:'d-long', w8:.7},
+    {k:'type', id:'end', track:0, w8:1.1, lines:[
+      {cls:'h3', t:'end'},
+      {cls:'h2', t:'See you soon'}]},
+    {k:'reveal', id:'end', track:0, w8:.9, items:[
+      {cls:'dim', t:'Thanks for scrolling all the way down.'}
+    ]},
+
+    {k:'rect', id:'mail', mo:3, track:1, x:540, y:140, w:300, h:80, st:'blue', shape:'cut', cls:'shadow', ic:'email',
+     href:'mailto:tiendat942003@gmail.com', w8:.6},
+    {k:'type', id:'mail', track:1, w8:.9, lines:[
+      {cls:'h3', t:'email'},{cls:'mono', t:'tiendat942003@gmail.com'}]},
+    {k:'wire', from:['dec','r'], to:['mail','l'], track:1, label:'hiring', head:'open', w8:.4},
+    {k:'wire', from:['mail','r'], to:['end','l'], track:1, head:'classic', w8:.4},
+
+    {k:'rect', id:'li', mo:4, track:2, x:540, y:256, w:300, h:80, st:'blue', shape:'cut', cls:'shadow', ic:'linkedin',
+     href:'https://www.linkedin.com/in/lohoangtiendat-david', w8:.6},
+    {k:'type', id:'li', track:2, w8:.9, lines:[
+      {cls:'h3', t:'linkedin'},{cls:'mono', t:'/in/lohoangtiendat-david'}]},
+    {k:'wire', from:['dec','r'], to:['li','l'], track:2, label:'hello', head:'open', w8:.4},
+    {k:'wire', from:['li','r'], to:['end','l'], track:2, head:'classic', w8:.4},
+
+    {k:'rect', id:'gh', mo:5, track:3, x:540, y:372, w:300, h:80, st:'blue', shape:'cut', cls:'shadow', ic:'github',
+     href:'https://github.com/dat94-03', w8:.6},
+    {k:'type', id:'gh', track:3, w8:.9, lines:[
+      {cls:'h3', t:'github'},{cls:'mono', t:'github.com/dat94-03'}]},
+    {k:'wire', from:['dec','r'], to:['gh','l'], track:3, label:'code', head:'open', w8:.4},
+    {k:'wire', from:['gh','r'], to:['end','l'], track:3, head:'classic', w8:.4}
+  ]
+}
+];
+
+/* ============================================================
+   HELPERS
+   ============================================================ */
+const SVGNS = 'http://www.w3.org/2000/svg';
+const clamp = (v,a=0,b=1)=>Math.max(a,Math.min(b,v));
+const easeOut = t => 1-Math.pow(1-t,3);
+const easeInOut = t => t<.5 ? 2*t*t : 1-Math.pow(-2*t+2,2)/2;
+const REDUCED = matchMedia('(prefers-reduced-motion:reduce)').matches;
+/* a phone, or a window too short to fit a scaled-down page */
+const narrowNow = () => innerWidth < 820 || innerHeight < 560;
+const NARROW = narrowNow();
+document.body.classList.toggle('narrow', NARROW);
+
+const TOOL_FOR = {rect:'rect', type:'text', reveal:'text', bars:'text', wire:'wire'};
+const TIP_FOR  = {rect:'drag', type:'type', reveal:'fill', bars:'fill', wire:'connect'};
+
+function anchor(d, side, pad=0){
+  const cx = d.x + d.w/2, cy = d.y + d.h/2;
+  return {l:[d.x-pad,cy], r:[d.x+d.w+pad,cy], t:[cx,d.y-pad], b:[cx,d.y+d.h+pad]}[side];
+}
+function route(a,b,fs,ts){
+  const h = s=>s==='l'||s==='r';
+  if(h(fs)&&h(ts)){const m=(a[0]+b[0])/2; return `M${a[0]} ${a[1]}L${m} ${a[1]}L${m} ${b[1]}L${b[0]} ${b[1]}`;}
+  if(!h(fs)&&!h(ts)){const m=(a[1]+b[1])/2; return `M${a[0]} ${a[1]}L${a[0]} ${m}L${b[0]} ${m}L${b[0]} ${b[1]}`;}
+  if(h(fs)) return `M${a[0]} ${a[1]}L${b[0]} ${a[1]}L${b[0]} ${b[1]}`;
+  return `M${a[0]} ${a[1]}L${a[0]} ${b[1]}L${b[0]} ${b[1]}`;
+}
+/* Arrow heads. `side` is the face of the target the edge arrives at,
+   so the head points INTO the shape — the same way the dashes travel
+   (stroke-dashoffset runs negative, i.e. toward the path end).
+   dx,dy therefore runs tip -> base, i.e. back up the edge. */
+function arrowHead(p, side, kind){
+  const [x,y] = p;
+  const [dx,dy] = {l:[-1,0], r:[1,0], t:[0,-1], b:[0,1]}[side];
+  const px = -dy, py = dx;
+  const P = (along, across) =>
+    `${(x + dx*along + px*across).toFixed(1)} ${(y + dy*along + py*across).toFixed(1)}`;
+  switch(kind){
+    case 'open':                                   /* light chevron */
+      return {d:`M${P(8.5,5)}L${P(0,0)}L${P(8.5,-5)}`, open:1};
+    case 'classic':                                /* notched barb */
+      return {d:`M${P(0,0)}L${P(9.5,4.3)}L${P(6.8,0)}L${P(9.5,-4.3)}Z`};
+    case 'diamond':
+      return {d:`M${P(0,0)}L${P(5.2,4.2)}L${P(10.4,0)}L${P(5.2,-4.2)}Z`};
+    case 'oval': {
+      const cx = x + dx*4.4, cy = y + dy*4.4, r = 4.4;
+      return {d:`M${(cx-r).toFixed(1)} ${cy.toFixed(1)}`
+              + `A${r} ${r} 0 1 0 ${(cx+r).toFixed(1)} ${cy.toFixed(1)}`
+              + `A${r} ${r} 0 1 0 ${(cx-r).toFixed(1)} ${cy.toFixed(1)}Z`};
+    }
+    case 'crow':                                   /* ERD crow's foot */
+      return {d:`M${P(9,5.4)}L${P(0,0)}L${P(9,-5.4)}M${P(9,0)}L${P(0,0)}`, open:1};
+    case 'bar':
+      return {d:`M${P(0,5.8)}L${P(0,-5.8)}`, open:1};
+    default:                                       /* solid block */
+      return {d:`M${P(0,0)}L${P(8.6,3.8)}L${P(8.6,-3.8)}Z`};
+  }
+}
+function offsetIn(el, shapeEl, def, atLeft){
+  let x=0, y=0, n=el;
+  while(n && n!==shapeEl){ x+=n.offsetLeft; y+=n.offsetTop; n=n.offsetParent; }
+  return [def.x + x + (atLeft?6:0), def.y + y + (atLeft? (el.offsetHeight||10)/2 : 10)];
+}
+
+/* ============================================================
+   BUILD
+   ============================================================ */
+const scenesEl = document.getElementById('scenes');
+const built = [];
+
+SCENES.forEach((sc, si)=>{
+  const sec = document.createElement('section');
+  sec.className = 'scene';
+  sec.id = sc.id;
+  sec.style.height = `calc(${sc.len} * 100vh)`;
+  const sticky = document.createElement('div');
+  sticky.className = 'sticky';
+  const stage = document.createElement('div');
+  stage.className = 'stage';
+  stage.style.width = sc.vw+'px';
+  stage.style.height = sc.vh+'px';
+
+  const trackIds = [...new Set(sc.steps.map(s=>s.track||0))].sort();
+
+  const tag = document.createElement('div');
+  tag.className = 'scene-tag';
+  tag.innerHTML = `<b>${String(si+1).padStart(2,'0')}</b><span>${sc.name}</span>
+                   <span style="opacity:.55">· ${trackIds.length} parallel</span>`;
+  stage.appendChild(tag);
+
+  const svg = document.createElementNS(SVGNS,'svg');
+  svg.setAttribute('class','wires');
+  svg.setAttribute('width', sc.vw);
+  svg.setAttribute('height', sc.vh);
+  stage.appendChild(svg);
+
+  /* ---- one cursor per track ---- */
+  const cursors = {};
+  trackIds.forEach(ti=>{
+    const r = RUNNERS[ti % RUNNERS.length];
+    const c = document.createElement('div');
+    c.className = 'cursor';
+    c.style.setProperty('--c', r.c);
+    c.innerHTML = `<div class="inner">
+        <svg class="arrow" width="19" height="25" viewBox="0 0 19 25">
+          <path d="M2 1.5 L2 20 L6.6 15.6 L9.6 23 L13 21.5 L10 14.3 L16.5 14.2 Z"
+                fill="${r.c}" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/>
+        </svg>
+        <div class="ring"></div>
+        <div class="tag">${r.name}<em></em></div>
+      </div>`;
+    stage.appendChild(c);
+    cursors[ti] = {el:c, em:c.querySelector('em'), runner:r};
+  });
+
+  sticky.appendChild(stage);
+  sec.appendChild(sticky);
+  scenesEl.appendChild(sec);
+
+  /* ---- shapes ---- */
+  const shapes = {};
+  const rectOf = {};
+  sc.steps.filter(s=>s.k==='rect').forEach(s=>{
+    rectOf[s.id] = s;
+    const runner = RUNNERS[(s.track||0) % RUNNERS.length];
+    const el = document.createElement('div');
+    /* colour comes from the .st-* class so the theme can repaint it */
+    el.className = 'shp st-' + (ST_KEYS.has(s.st) ? s.st : 'white') +
+                   ' ' + (s.shape||'') + (s.cls ? ' '+s.cls : '') +
+                   (s.center?' center':'');
+    el.style.cssText = `left:${s.x}px;top:${s.y}px;width:0;height:0`;
+    el.style.setProperty('--hc', runner.c);
+    el.style.setProperty('--cc', runner.c);
+
+    let inner = '';
+    if(s.img){
+      inner += `<img class="photo" src="${s.img}" alt="${s.alt||''}"
+                     style="width:${s.w}px;height:${s.h}px${
+                       s.pos?`;object-position:${s.pos}`:''}">`;
+    }
+    if(s.shape==='container'){
+      inner += `<div class="cap">
+                  ${s.ic?iconFor(s.ic):''}<span>${s.cap||''}</span>
+                  ${s.meta?`<span class="meta">${s.meta}</span>`:''}
+                </div><div class="body"></div>`;
+    }else if(s.shape==='lane'){
+      inner += `<div class="lane-h"><span>${s.lane||''}</span></div>
+                <div class="lane-body"></div>`;
+    }else{
+      if(s.ic) inner += `<div class="ic-badge">${iconFor(s.ic,'lg')}</div>`;
+      inner += `<div class="body"></div>`;
+    }
+    inner += [[0,0],[.5,0],[1,0],[0,.5],[1,.5],[0,1],[.5,1],[1,1]]
+      .map(([a,b])=>`<div class="hdl" style="left:calc(${a*100}% - 4px);top:calc(${b*100}% - 4px)"></div>`)
+      .join('');
+    if(s.sel){
+      /* same size as the card, nudged up-and-left, drawn behind it —
+         so only the top and left edges and three handles show */
+      const off = s.selOff || 15;
+      const sb = document.createElement('div');
+      sb.className = 'selbox ' + (s.dash || 'd-short')
+                   + ' st-' + (ST_KEYS.has(s.st) ? s.st : 'white');
+      sb.style.cssText =
+        `left:${s.x-off}px;top:${s.y-off}px;width:${s.w}px;height:${s.h}px`;
+      sb.innerHTML = '<i style="left:-5px;top:-5px"></i><i style="right:-5px;top:-5px"></i>'
+                   + '<i style="left:-5px;bottom:-5px"></i>';
+      stage.appendChild(sb);
+      el.classList.add('selected');
+      el.selBox = sb;
+    }
+    el.innerHTML = inner;
+    if(s.href){
+      el.classList.add('link');
+      el.setAttribute('role','link');
+      el.setAttribute('tabindex','0');
+      const go = ()=> s.href.startsWith('mailto:')
+        ? (location.href = s.href)
+        : window.open(s.href, '_blank', 'noopener');
+      el.addEventListener('click', go);
+      el.addEventListener('keydown', ev=>{ if(ev.key==='Enter'||ev.key===' '){ ev.preventDefault(); go(); } });
+    }
+    stage.appendChild(el);
+    shapes[s.id] = {el, body: el.querySelector('.body,.lane-body'), def:s};
+  });
+
+  /* ---- SCHEDULE: tracks run concurrently, deps are respected ----
+     a step can't start before its own track is free, and not before
+     the shapes it needs exist.                                     */
+  /* Edges that share an anchor run along the same pixels — a fan-out from
+     one shape, or a fan-in to one. Tinting those per runner just muddles
+     them, so a bundled edge draws in the single neutral line colour. */
+  const anchorUse = {};
+  sc.steps.filter(x=>x.k === 'wire').forEach(w=>{
+    const A = shapes[w.from[0]], B = shapes[w.to[0]];
+    if(!A || !B) return;
+    [anchor(A.def, w.from[1], 2), anchor(B.def, w.to[1], 9)].forEach(pt=>{
+      const key = Math.round(pt[0]) + ',' + Math.round(pt[1]);
+      anchorUse[key] = (anchorUse[key] || 0) + 1;
+    });
+  });
+  const bundled = w => {
+    const A = shapes[w.from[0]], B = shapes[w.to[0]];
+    if(!A || !B) return false;
+    return [anchor(A.def, w.from[1], 2), anchor(B.def, w.to[1], 9)]
+      .some(pt=>anchorUse[Math.round(pt[0]) + ',' + Math.round(pt[1])] > 1);
+  };
+
+  const sched = new Map();
+  const trackFree = {};
+  sc.steps.forEach(s=>{
+    const tr = s.track||0;
+    let start = trackFree[tr] || 0;
+    const deps = [];
+    if(s.k==='wire'){ deps.push(rectOf[s.from[0]], rectOf[s.to[0]]); }
+    else if(s.k!=='rect'){ deps.push(rectOf[s.id]); }
+    deps.forEach(d=>{
+      const ds = d && sched.get(d);
+      if(ds) start = Math.max(start, ds.b);
+    });
+    const end = start + (s.w8||1);
+    sched.set(s, {a:start, b:end});
+    trackFree[tr] = end;
+  });
+  const span = Math.max(...Object.values(trackFree));
+
+  /* ---- build step objects ---- */
+  const steps = sc.steps.map(s=>{
+    const w = sched.get(s);
+    const o = {def:s, track:s.track||0, a:w.a/span, b:w.b/span};
+    const sh = shapes[s.id];
+    const runner = RUNNERS[(s.track||0) % RUNNERS.length];
+
+    if(s.k==='rect'){
+      o.apply = t=>{
+        const e = easeOut(clamp((t-.22)/.6));
+        if(NARROW){
+          /* card keeps its natural size; the clip wipes it in top-down,
+             so the page never reflows while you scroll */
+          sh.el.style.setProperty('--rev', e);
+        }else{
+          sh.el.style.width  = (s.w*e)+'px';
+          sh.el.style.height = (s.h*e)+'px';
+        }
+        sh.el.style.opacity = t>0 ? 1 : 0;
+        sh.el.classList.toggle('drawing', t<.84);
+        sh.el.classList.toggle('held', t>=.84 && t<1);
+        if(sh.el.selBox) sh.el.selBox.style.opacity = t>=.88 ? 1 : 0;
+      };
+      o.at = t=>{
+        const e = easeOut(clamp((t-.22)/.6));
+        return [s.x + s.w*e, s.y + s.h*e];
+      };
+      o.from = [s.x, s.y];
+      o.down = t => t>.18 && t<.86;
+    }
+
+    if(s.k==='type'){
+      const host = sh.body;
+      const lines = s.lines.map(l=>{
+        const d = document.createElement('div');
+        d.className = 'ln '+(l.cls||'p');
+        d.innerHTML = `<span class="tx"></span><i class="caret"></i>`;
+        host.appendChild(d);
+        return {el:d, tx:d.querySelector('.tx'), caret:d.querySelector('.caret'), t:l.t};
+      });
+      const chars = lines.reduce((a,l)=>a+l.t.length,0);
+      o.apply = t=>{
+        const tt = clamp((t-.18)/.8);
+        let n = Math.round(chars*tt), active = -1;
+        lines.forEach((l,i)=>{
+          const take = Math.max(0, Math.min(l.t.length, n));
+          l.tx.textContent = l.t.slice(0, take);
+          if(take>0 && take<l.t.length && active<0) active = i;
+          n -= l.t.length;
+          l.caret.classList.remove('on');
+        });
+        if(active<0 && tt>0 && tt<1) active = lines.length-1;
+        if(tt>0 && tt<.999 && active>=0) lines[active].caret.classList.add('on');
+      };
+      o.at = t=>{
+        const tt = clamp((t-.18)/.8);
+        let n = Math.round(chars*tt), active = 0;
+        for(let i=0;i<lines.length;i++){
+          if(n <= lines[i].t.length){ active = i; break; }
+          n -= lines[i].t.length; active = i;
+        }
+        return offsetIn(lines[active].caret, sh.el, sh.def);
+      };
+      o.from = [sh.def.x+18, sh.def.y+26];
+      o.down = t => t>.14 && t<.96;
+    }
+
+    if(s.k==='reveal' || s.k==='bars'){
+      const host = sh.body;
+      const els = [];
+      if(s.k==='bars'){
+        s.items.forEach(([label,pct])=>{
+          const d = document.createElement('div');
+          d.className = 'ri bar-row';
+          d.innerHTML = `<div class="t">
+              <span>${iconFor(primaryToken(label))}${label}</span><em>${pct}</em></div>
+            <div class="bar"><i></i></div>`;
+          host.appendChild(d);
+          els.push({el:d, fill:d.querySelector('.bar i'), pct});
+        });
+      }else{
+        /* cols:2 drops the items into a CSS multicolumn so a long
+           responsibility list reads in two columns, not one tall one */
+        const target = s.cols === 2
+          ? host.appendChild(Object.assign(document.createElement('div'), {className:'cols2'}))
+          : host;
+        s.items.forEach(it=>{
+          const d = document.createElement('div');
+          d.className = 'ri '+(it.cls||'p');
+          if(it.cls==='gallery'){
+            d.className = 'ri gal' + (it.strip ? ' strip' : '');
+            if(it.gc) d.style.setProperty('--gc', it.gc);
+            if(it.gh) d.style.setProperty('--gh', it.gh + 'px');
+            d.innerHTML = it.html.map(([f,cap],i)=>
+              `<button type="button" data-g="${i}" aria-label="${cap}">
+                 <img src="photos/${f}-t.jpg" alt="${cap}" loading="lazy">
+                 <span class="zoom">
+                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+                     <circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21M7.5 10.5h6M10.5 7.5v6"/>
+                   </svg>
+                 </span>
+               </button>`).join('');
+            d.dataset.shots = JSON.stringify(it.html);
+          }else if(it.cls==='stats'){
+            d.className = 'ri statrow';
+            d.innerHTML = it.html.map(([n,l])=>`<div><b>${n}</b><i>${l}</i></div>`).join('');
+          }else if(it.cls==='chips' || it.cls==='flowline' || it.cls==='icrow'){
+            d.innerHTML = it.html.map((h,i)=>
+              it.cls==='flowline'
+                ? `<b>${iconFor(h)}${h}</b>${i<it.html.length-1?'<s>▸</s>':''}`
+                : it.cls==='icrow'
+                  ? iconFor(h,'lg')
+                  : `<span class="chip">${iconFor(h)}${h}</span>`).join('');
+          }else{
+            d.textContent = it.t;
+          }
+          target.appendChild(d);
+          els.push({el:d});
+        });
+      }
+      const n = els.length;
+      o.apply = t=>{
+        const tt = clamp((t-.1)/.85);
+        els.forEach((o2,i)=>{
+          const e = easeOut(clamp((tt - i/n) * (n*0.9)));
+          o2.el.style.opacity = e;
+          o2.el.style.transform = `translateY(${(1-e)*5}px)`;
+          if(o2.fill) o2.fill.style.width = (o2.pct*e)+'%';
+        });
+      };
+      o.at = t=>{
+        const tt = clamp((t-.1)/.85);
+        const i = Math.min(n-1, Math.floor(tt*n));
+        return offsetIn(els[i].el, sh.el, sh.def, true);
+      };
+      o.from = [sh.def.x+20, sh.def.y+40];
+      o.down = t => t>.08 && t<.95;
+    }
+
+    if(s.k==='wire'){
+      const A = shapes[s.from[0]], B = shapes[s.to[0]];
+      const p1 = anchor(A.def, s.from[1], 2), p2 = anchor(B.def, s.to[1], 9);
+      const path = document.createElementNS(SVGNS,'path');
+      path.setAttribute('class','w');
+      path.setAttribute('d', route(p1,p2,s.from[1],s.to[1]));
+      path.style.stroke = runner.c;
+      svg.appendChild(path);
+      const hd = arrowHead(p2, s.to[1], s.head);
+      const head = document.createElementNS(SVGNS,'path');
+      head.setAttribute('class', 'head' + (hd.open ? ' open' : ''));
+      head.setAttribute('d', hd.d);
+      svg.appendChild(head);
+      let lab = null;
+      if(s.label){
+        lab = document.createElementNS(SVGNS,'text');
+        lab.setAttribute('x',(p1[0]+p2[0])/2);
+        lab.setAttribute('y',(p1[1]+p2[1])/2-6);
+        lab.setAttribute('text-anchor','middle');
+        lab.textContent = s.label;
+        svg.appendChild(lab);
+      }
+      const L = path.getTotalLength();
+      const solo = !bundled(s);          /* only lone edges get runner ink */
+      path.style.strokeDasharray = L;
+      o.apply = t=>{
+        const done = t>=1;
+        if(done !== path.classList.contains('flow')){
+          path.classList.toggle('flow', done);
+          /* finished edges hand their dash pattern to the CSS animation */
+          path.style.strokeDasharray  = done ? '' : L;
+          path.style.strokeDashoffset = done ? '' : path.style.strokeDashoffset;
+        }
+        if(!done){
+          const tt = easeInOut(clamp((t-.12)/.78));
+          path.style.strokeDashoffset = L*(1-tt);
+          head.style.opacity = tt>.97?1:0;
+          if(lab) lab.style.opacity = clamp((tt-.6)/.3);
+        }else{
+          head.style.opacity = 1;
+          if(lab) lab.style.opacity = 1;
+        }
+        path.style.opacity = t>0?1:0;
+        /* fresh ink in the runner's colour, settling to graphite */
+        const ink = (done || !solo) ? '' : runner.c;
+        path.style.setProperty('--line', ink);
+        head.style.setProperty('--line', ink);
+      };
+      o.at = t=>{
+        const tt = easeInOut(clamp((t-.12)/.78));
+        const pt = path.getPointAtLength(L*tt);
+        return [pt.x, pt.y];
+      };
+      o.from = p1;
+      o.down = t => t>.08 && t<.95;
+    }
+    return o;
+  });
+
+  /* per-track step lists + finish times */
+  const tracks = trackIds.map(ti=>{
+    const own = steps.filter(s=>s.track===ti);
+    return {id:ti, steps:own, end:Math.max(...own.map(s=>s.b)),
+            cursor:cursors[ti], runner:RUNNERS[ti % RUNNERS.length]};
+  });
+
+  /* NARROW: regroup the timeline per card — each card is driven by its
+     own position on screen rather than by a scene-wide scrub, and the
+     wires are replaced by connectors between consecutive cards. */
+  let cards = null;
+  if(NARROW){
+    cards = [];
+    const byId = {};
+    steps.forEach(st=>{
+      if(st.def.k === 'wire') return;
+      const id = st.def.id;
+      if(!byId[id]){
+        byId[id] = {id, el:shapes[id].el, steps:[]};
+        cards.push(byId[id]);
+      }
+      byId[id].steps.push(st);
+    });
+    /* reading order on a phone isn't always declaration order
+       (declaration order has to satisfy the wire scheduler) */
+    cards.forEach((c,i)=>{ c.idx = i; c.mo = shapes[c.id].def.mo ?? (i+1); });
+    cards.sort((a,b)=> a.mo - b.mo || a.idx - b.idx);
+    cards.forEach(c=>stage.appendChild(c.el));
+    cards.forEach(c=>{
+      const rect = c.steps.find(x=>x.def.k === 'rect');
+      const rest = c.steps.filter(x=>x !== rect);
+      if(rect){ rect.ma = 0; rect.mb = .38; }
+      const tot = rest.reduce((n,x)=>n + (x.def.w8 || 1), 0) || 1;
+      let acc = 0;
+      rest.forEach(x=>{
+        const w = (x.def.w8 || 1) / tot;
+        x.ma = .38 + acc * .62; acc += w; x.mb = .38 + acc * .62;
+      });
+      c.el.style.setProperty('--rev', 0);
+    });
+    /* drop a connector before every card but the first */
+    cards.forEach((c,i)=>{
+      if(!i) return;
+      const conn = document.createElement('div');
+      conn.className = 'conn';
+      stage.insertBefore(conn, c.el);
+      c.conn = conn;
+    });
+  }
+
+  built.push({def:sc, sec, stage, svg, steps, tracks, shapes, cards,
+              shapeCount:Object.keys(shapes).length});
+});
+
+/* ============================================================
+   CHROME
+   ============================================================ */
+const TOOLS = [
+  {id:'select', svg:'<path d="M5 3l12 8-5 1 2.6 5.4-2.2 1L10 13l-5 3z"/>', fill:1},
+  {id:'rect',   svg:'<rect x="3.5" y="5.5" width="17" height="13" rx="1.5"/>'},
+  {id:'text',   svg:'<path d="M5 6h14M12 6v13M9 19h6"/>'},
+  {id:'wire',   svg:'<path d="M4 18h6a4 4 0 0 0 4-4V9"/><path d="M11 11l3-3 3 3"/>'}
+];
+const toolsEl = document.getElementById('tools');
+TOOLS.forEach(t=>{
+  const d = document.createElement('div');
+  d.className = 'tool'; d.dataset.tool = t.id;
+  d.innerHTML = `<svg width="17" height="17" viewBox="0 0 24 24"
+     fill="${t.fill?'currentColor':'none'}" stroke="currentColor"
+     stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round">${t.svg}</svg>`;
+  toolsEl.appendChild(d);
+});
+function setTools(active){
+  toolsEl.querySelectorAll('.tool').forEach(t=>
+    t.classList.toggle('on', active.has(t.dataset.tool)));
+}
+
+const navEl = document.getElementById('nav');
+SCENES.forEach(s=>{
+  const a = document.createElement('a');
+  a.href = '#'+s.id;
+  a.innerHTML = `<span>${s.name}</span><i class="b"></i>`;
+  navEl.appendChild(a);
+});
+
+/* job matrix slots — one per possible runner */
+const jobsEl = document.getElementById('stJobs');
+const jobSlots = RUNNERS.map(r=>{
+  const d = document.createElement('div');
+  d.className = 'job hide';
+  d.style.setProperty('--c', r.c);
+  d.innerHTML = `<span>${r.name}</span><span class="tr"><b></b></span>`;
+  jobsEl.appendChild(d);
+  return {el:d, fill:d.querySelector('b')};
+});
+
+const stScene = document.getElementById('stScene');
+const stName  = document.getElementById('stName');
+const stShapes= document.getElementById('stShapes');
+const recTxt  = document.getElementById('recTxt');
+const intro   = document.getElementById('intro');
+const progFill= document.getElementById('progFill');
+
+/* ============================================================
+   LAYOUT
+   ============================================================ */
+function layout(){
+  if(NARROW){ frameNeeded(); return; }
+  /* the rails need ~50px a side; everything else is for the diagram */
+  const availH = innerHeight - 116;   /* 52 topbar + 30 status + scene tag */
+  const availW = innerWidth - (innerWidth>860 ? 104 : 28);
+  /* A drawio file has one zoom level, not one per page. Fitting each
+     page independently made the shortest page render biggest, so the
+     document takes a single zoom: whatever the tightest page allows. */
+  const k = Math.min(1.45,
+    ...built.map(b=>Math.min(availW/b.def.vw, availH/b.def.vh)));
+  built.forEach(b=>{
+    b.k = k;
+    b.stage.style.transform = `translate3d(0,0,0) scale(${b.k})`;
+    b.tracks.forEach(t=>
+      t.cursor.el.querySelector('.inner').style.transform = `scale(${1/b.k})`);
+  });
+  frameNeeded();
+}
+
+/* ============================================================
+   FRAME LOOP
+   Raw scroll is damped into `view` so progress eases instead of
+   tracking the wheel step-for-step, and every scene drifts
+   (parallax) across its whole span — so scrolling back up over
+   finished work still produces continuous motion even though the
+   drawing itself never reverses.
+   Reads and writes are batched into phases to keep it to one
+   layout pass per frame.
+   ============================================================ */
+const TAU = 110;                   /* damping time constant, ms       */
+const PARA = REDUCED ? 0 : 44;     /* parallax travel per scene, px   */
+let running = false, prevTs = 0, idleUntil = 0;
+let introDone = false;             /* latches once the guide is dismissed */
+
+function frameNeeded(ms=700){
+  idleUntil = performance.now() + ms;
+  if(!running){ running = true; prevTs = performance.now(); requestAnimationFrame(frame); }
+}
+function onScroll(){ frameNeeded(); }
+
+function frame(ts){
+  const dt = Math.min(64, Math.max(1, ts - prevTs));
+  prevTs = ts;
+  if(NARROW){ frameNarrow(ts); return; }
+  const alpha = REDUCED ? 1 : 1 - Math.exp(-dt/TAU);
+  const vh = innerHeight;
+  let settling = false;
+
+  /* ---- phase 1: READ geometry ---- */
+  built.forEach(b=>{
+    const r = b.sec.getBoundingClientRect();
+    const span = r.height - vh;
+    b.p = span > 0 ? clamp((-r.top)/span) : (r.top<=0?1:0);
+    if(REDUCED) b.p = (r.top < vh && r.bottom > 0) ? 1 : (r.top<=0?1:0);
+    b.visible = r.top < vh && r.bottom > 0;
+    b.isActive = b.visible && -r.top >= -vh*0.5;
+  });
+
+  /* ---- phase 2: damp + WRITE shapes and parallax ---- */
+  let activeIdx = 0, activeScene = null, activeP = 0, activeFront = true, drawn = 0;
+
+  built.forEach((b, bi)=>{
+    if(b.view === undefined) b.view = b.p;
+    const d = b.p - b.view;
+    if(Math.abs(d) > 0.0004){ b.view += d*alpha; if(b.visible) settling = true; }
+    else b.view = b.p;
+
+    const mp = b.maxP = Math.max(b.maxP || 0, b.view);
+    b.frontier = b.view >= mp - 0.0012;
+    if(b.isActive){
+      activeIdx = bi; activeScene = b; activeP = mp; activeFront = b.frontier;
+    }
+
+    /* parallax drift — always proportional to scroll, both directions */
+    if(b.visible || b.lastVisible){
+      const off = (0.5 - b.view) * PARA;
+      b.stage.style.transform = `translate3d(0,${off.toFixed(2)}px,0) scale(${b.k})`;
+    }
+    if(b.wasLive !== b.visible){
+      b.svg.classList.toggle('live', b.visible);
+      b.stage.querySelectorAll('.selbox').forEach(x=>x.classList.toggle('live', b.visible));
+      b.wasLive = b.visible;
+    }
+    b.lastVisible = b.visible;
+
+    const grew = b.lastP !== mp;
+    b.lastP = mp;
+    if(grew){
+      b.steps.forEach(s=>{
+        const t = clamp((mp - s.a)/(s.b - s.a));
+        s.apply(t);
+        if(t > 0 && !s.touched){ s.touched = true; if(s.def.k==='rect') b.drawn = (b.drawn||0)+1; }
+      });
+    }
+    drawn += b.drawn || 0;
+  });
+
+  /* ---- phase 3: READ cursor targets (one layout pass, after all writes) ---- */
+  const pending = [];
+  built.forEach(b=>{
+    b.tracks.forEach(tr=>{
+      if(!b.visible){ pending.push({cz:tr.cursor, hide:true}); return; }
+      const mp = b.maxP;
+      let cur = null;
+      for(const s of tr.steps){
+        const t = clamp((mp - s.a)/(s.b - s.a));
+        if(t > 0 && t < 1){ cur = {s, t}; break; }
+      }
+      const entryOf = s => [s.from[0]-150+tr.id*34, s.from[1]-100+tr.id*46];
+
+      if(cur && b.frontier){
+        const idx = tr.steps.indexOf(cur.s);
+        const prev = idx>0 ? tr.steps[idx-1] : null;
+        const travel = clamp(cur.t/0.2);
+        const start = prev ? prev.at(1) : entryOf(cur.s);
+        let pt;
+        if(travel < 1){
+          const e = easeInOut(travel);
+          pt = [start[0]+(cur.s.from[0]-start[0])*e, start[1]+(cur.s.from[1]-start[1])*e];
+        }else{
+          pt = cur.s.at(cur.t);
+        }
+        pending.push({cz:tr.cursor, pt, down: !!cur.s.down && cur.s.down(cur.t),
+                      tip: TIP_FOR[cur.s.def.k] || '', scene:b, kind:cur.s.def.k});
+      }else if(mp <= 0 && b === built[0]){
+        pending.push({cz:tr.cursor, pt:entryOf(tr.steps[0]), down:false, tip:'ready'});
+      }else{
+        pending.push({cz:tr.cursor, hide:true});
+      }
+    });
+  });
+
+  /* ---- phase 4: WRITE cursors + chrome ---- */
+  let busy = 0;
+  const activeTools = new Set();
+  pending.forEach(q=>{
+    const cz = q.cz;
+    if(q.hide){
+      if(cz.shown !== false){ cz.el.style.opacity = 0; cz.shown = false; }
+      cz.el.classList.remove('down');
+      return;
+    }
+    cz.el.style.transform = `translate(${q.pt[0].toFixed(1)}px,${q.pt[1].toFixed(1)}px)`;
+    if(cz.shown !== true){ cz.el.style.opacity = 1; cz.shown = true; }
+    cz.el.classList.toggle('down', q.down);
+    if(cz.tip !== q.tip){ cz.em.textContent = q.tip; cz.tip = q.tip; }
+    if(q.scene && q.scene === activeScene){
+      busy++;
+      activeTools.add(TOOL_FOR[q.kind] || 'select');
+    }
+  });
+
+  const ab = built[activeIdx];
+  const totalShapes = built.reduce((a,b)=>a+b.shapeCount, 0);
+  stScene.textContent = `${String(activeIdx+1).padStart(2,'0')} / ${String(built.length).padStart(2,'0')}`;
+  stName.textContent = ab.def.name;
+  stShapes.textContent = `${drawn} / ${totalShapes} shapes`;
+  recTxt.textContent = activeP>=1 ? 'idle' :
+                       (!activeFront ? 'reviewing' : `${busy} job${busy===1?'':'s'}`);
+  setTools(activeP>=1 || !activeFront ? SELECT_ONLY : activeTools);
+
+  jobSlots.forEach((j,i)=>{
+    const tr = activeScene && activeScene.tracks.find(t=>t.id===i);
+    j.el.classList.toggle('hide', !tr);
+    if(!tr) return;
+    const prog = clamp(activeP / tr.end);
+    j.fill.style.width = (prog*100).toFixed(1)+'%';
+    j.el.classList.toggle('idle', prog>=1 || !activeFront);
+  });
+
+  navEl.querySelectorAll('a').forEach((a,i)=>{
+    a.classList.toggle('on', i===activeIdx);
+    a.classList.toggle('done', (built[i].maxP||0) >= 1);
+  });
+  /* The opening guide fades out over the first scroll and then stays
+     gone for the rest of the visit — coming back to the top is not a
+     reason to explain the page again. Only a reload (or Replay)
+     brings it back. */
+  if(introDone){
+    if(intro.vis !== -1){ intro.style.display = 'none'; intro.vis = -1; }
+  }else{
+    const fade = 1 - clamp(scrollY / (vh*0.2));
+    if(intro.vis !== fade){
+      intro.style.opacity = fade;
+      intro.style.transform = `translateY(${(1-fade)*-18}px) scale(${1-(1-fade)*0.03})`;
+      intro.style.pointerEvents = fade > 0.6 ? '' : 'none';
+      intro.vis = fade;
+    }
+    if(fade <= 0) introDone = true;
+  }
+  const docSpan = document.documentElement.scrollHeight - vh;
+  progFill.style.width = (docSpan>0 ? clamp(scrollY/docSpan)*100 : 0).toFixed(2)+'%';
+
+  /* keep going while anything is still easing, or just after a scroll */
+  if(settling || ts < idleUntil) requestAnimationFrame(frame);
+  else running = false;
+}
+
+/* ============================================================
+   NARROW FRAME — each card draws itself as it rises through the
+   viewport. Monotonic per card, so scrolling back up reviews
+   finished work exactly like the desktop view.
+   ============================================================ */
+function frameNarrow(ts){
+  const vh = innerHeight;
+  let drawing = 0, drawn = 0, total = 0, activeIdx = 0, bestDist = 1e9;
+
+  built.forEach((b, bi)=>{
+    const sr = b.sec.getBoundingClientRect();
+    if(sr.bottom > vh*0.25 && sr.top < vh*0.75){
+      const d = Math.abs(sr.top - vh*0.3);
+      if(d < bestDist){ bestDist = d; activeIdx = bi; }
+    }
+    const near = sr.bottom > -vh && sr.top < vh*2;
+    b.cards.forEach(c=>{
+      total++;
+      if(!near){ if(c.maxP >= 1) drawn++; return; }
+      const r = c.el.getBoundingClientRect();
+      /* starts when the card's top reaches 88% of the screen,
+         finishes half a screen later */
+      const p = REDUCED ? 1 : clamp((vh*0.88 - r.top) / (vh*0.55));
+      const mp = c.maxP = Math.max(c.maxP || 0, p);
+      if(mp >= 1) drawn++; else if(mp > 0) drawing++;
+      if(c.lastP !== mp){
+        c.lastP = mp;
+        c.steps.forEach(st=>{
+          st.apply(clamp((mp - st.ma) / (st.mb - st.ma)));
+        });
+        if(c.conn){
+          c.conn.style.opacity = Math.min(1, mp*2.2);
+          c.conn.classList.toggle('flowing', mp >= 1);
+        }
+      }
+    });
+  });
+
+  const ab = built[activeIdx];
+  stScene.textContent = `${String(activeIdx+1).padStart(2,'0')} / ${String(built.length).padStart(2,'0')}`;
+  stName.textContent = ab.def.name;
+  stShapes.textContent = `${drawn} / ${total} shapes`;
+  recTxt.textContent = drawing ? 'drawing' : 'idle';
+  navEl.querySelectorAll('a').forEach((a,i)=>{
+    a.classList.toggle('on', i === activeIdx);
+    a.classList.toggle('done', built[i].cards.every(c=>(c.maxP||0) >= 1));
+  });
+
+  if(introDone){
+    if(intro.vis !== -1){ intro.style.display = 'none'; intro.vis = -1; }
+  }else{
+    const fade = 1 - clamp(scrollY / (vh*0.25));
+    if(intro.vis !== fade){
+      intro.style.opacity = fade;
+      intro.style.pointerEvents = fade > 0.6 ? '' : 'none';
+      intro.vis = fade;
+    }
+    if(fade <= 0) introDone = true;
+  }
+  const docSpan = document.documentElement.scrollHeight - vh;
+  progFill.style.width = (docSpan>0 ? clamp(scrollY/docSpan)*100 : 0).toFixed(2)+'%';
+
+  if(ts < idleUntil) requestAnimationFrame(frame);
+  else running = false;
+}
+
+const SELECT_ONLY = new Set(['select']);
+
+addEventListener('scroll', onScroll, {passive:true});
+let rzT = null;
+addEventListener('resize', ()=>{
+  /* the two layouts are different renderers, so crossing the
+     breakpoint reloads rather than trying to morph */
+  clearTimeout(rzT);
+  rzT = setTimeout(()=>{ if(narrowNow() !== NARROW) location.reload(); }, 400);
+  layout();
+  built.forEach(b=>b.lastP=null);
+  frameNeeded();
+});
+/* theme choice survives reloads */
+const themeBtn = document.getElementById('themeBtn');
+function paintThemeBtn(){
+  themeBtn.textContent = document.body.classList.contains('dark') ? 'Light' : 'Dark';
+}
+themeBtn.onclick = ()=>{
+  const dark = document.body.classList.toggle('dark');
+  try{ localStorage.setItem('portfolio-theme', dark ? 'dark' : 'light'); }catch(e){}
+  paintThemeBtn();
+};
+paintThemeBtn();
+/* follow the OS only while the visitor hasn't chosen for themselves */
+matchMedia('(prefers-color-scheme:dark)').addEventListener('change', e=>{
+  let saved = null;
+  try{ saved = localStorage.getItem('portfolio-theme'); }catch(_){}
+  if(saved) return;
+  document.body.classList.toggle('dark', e.matches);
+  paintThemeBtn();
+});
+const skipBtn = document.getElementById('skipBtn');
+if(NARROW) skipBtn.textContent = 'Contact';
+skipBtn.onclick = ()=> document.getElementById('contact').scrollIntoView();
+/* wipe every scene back to an empty canvas — a fresh load, a bfcache
+   restore or Replay all land here, and all three re-arm the guide */
+function resetAll(){
+  introDone = false;
+  intro.style.display = '';
+  intro.vis = undefined;
+  built.forEach(b=>{
+    b.maxP = 0; b.lastP = null; b.drawn = 0; b.view = 0; b.p = 0;
+    if(b.cards) b.cards.forEach(c=>{
+      c.maxP = 0; c.lastP = null;
+      c.el.style.setProperty('--rev', 0);
+      if(c.conn){ c.conn.style.opacity = 0; c.conn.classList.remove('flowing'); }
+    });
+    b.tracks.forEach(t=>{ t.cursor.shown = undefined; t.cursor.tip = undefined; });
+    b.stage.querySelectorAll('.selbox').forEach(x=>x.style.opacity = 0);
+    b.steps.forEach(s=>{ s.touched = false; s.apply(0); });
+  });
+  frameNeeded();
+}
+document.getElementById('replay').onclick = e=>{
+  e.preventDefault();
+  jumpTop();
+  resetAll();
+};
+
+/* reload, or a back/forward cache restore, both start over */
+addEventListener('pageshow', ()=>{ jumpTop(); resetAll(); });
+addEventListener('beforeunload', jumpTop);
+
+/* Official marks are drawn to fill a 24x24 box, but their ink rarely
+   does — a wordmark is wide, an emblem is tall. Measure each mark once,
+   tighten its viewBox to the ink, and give its tile that same ratio so
+   the padding ends up equal on all four sides. */
+function tightenIconTiles(){
+  const cache = {};
+  document.querySelectorAll('svg[data-si]').forEach(svg=>{
+    const slug = svg.dataset.si;
+    let b = cache[slug];
+    if(b === undefined){
+      const path = svg.querySelector('path');
+      let box = null;
+      try{ box = path.getBBox(); }catch(e){}
+      b = cache[slug] = (box && box.width > 0 && box.height > 0)
+        ? {x:box.x, y:box.y, w:box.width, h:box.height} : null;
+    }
+    if(!b) return;
+    svg.setAttribute('viewBox', `${b.x.toFixed(2)} ${b.y.toFixed(2)} ${b.w.toFixed(2)} ${b.h.toFixed(2)}`);
+    const ar = b.w / b.h;
+    if(Math.abs(ar - 1) > 0.06){
+      const tile = svg.parentElement;
+      tile.classList.add('ar');
+      tile.style.setProperty('--ar', ar.toFixed(3));
+    }
+  });
+}
+tightenIconTiles();
+
+/* the guide advertises the real shape count, and clicking it starts the show */
+document.getElementById('introCount').textContent =
+  `empty canvas · 0 of ${built.reduce((a,b)=>a+b.shapeCount,0)} shapes`;
+document.getElementById('introScenes').textContent = built.length;
+document.getElementById('introCard').onclick = ()=>
+  scrollTo({top:innerHeight*0.85, behavior:'smooth'});
+
+/* ============================================================
+   PHOTO PREVIEW — thumbnails in the card open a dialog; arrow keys
+   and the title-bar buttons step through the set.
+   ============================================================ */
+(function(){
+  const lb   = document.getElementById('lb');
+  const img  = document.getElementById('lbImg');
+  const cap  = document.getElementById('lbCap');
+  const name = document.getElementById('lbName');
+  const idx  = document.getElementById('lbIdx');
+  let shots = [], at = 0;
+
+  function show(i){
+    at = (i + shots.length) % shots.length;
+    const [file, text] = shots[at];
+    img.src = 'photos/' + file + '.jpg';
+    img.alt = text;
+    cap.textContent = text;
+    name.textContent = file + '.jpg';
+    idx.textContent = (at + 1) + ' / ' + shots.length;
+  }
+  function open(set, i){
+    shots = set; show(i);
+    lb.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function close(){
+    lb.classList.remove('open');
+    document.body.style.overflow = '';
+    img.removeAttribute('src');
+  }
+
+  document.addEventListener('click', e=>{
+    const btn = e.target.closest('.gal > button');
+    if(btn){
+      e.stopPropagation();
+      open(JSON.parse(btn.parentElement.dataset.shots), +btn.dataset.g);
+      return;
+    }
+    if(e.target.closest('#lbClose') || e.target === lb) close();
+    else if(e.target.closest('#lbPrev')) show(at - 1);
+    else if(e.target.closest('#lbNext')) show(at + 1);
+  }, true);
+
+  addEventListener('keydown', e=>{
+    if(!lb.classList.contains('open')) return;
+    if(e.key === 'Escape'){ close(); e.stopPropagation(); }
+    if(e.key === 'ArrowLeft')  show(at - 1);
+    if(e.key === 'ArrowRight') show(at + 1);
+  });
+})();
+
+/* ============================================================
+   MARQUEE — drag on blank canvas to rubber-band select shapes,
+   click one to select it alone, click empty space to clear.
+   ============================================================ */
+(function(){
+  if(!matchMedia('(hover:hover) and (pointer:fine)').matches) return;
+  const SKIP = '.shp, .topbar, .status, .nav, .tools, .intro, .outro, .youtag, a, button';
+  const band = document.createElement('div');
+  band.className = 'band';
+  document.body.appendChild(band);
+  const stSel = document.getElementById('stSel');
+  let sx = 0, sy = 0, dragging = false, moved = false, swallowClick = false;
+
+  const count = ()=>{
+    const n = document.querySelectorAll('.shp.picked').length;
+    stSel.textContent = n ? n + ' selected' : '';
+  };
+  const clearPick = ()=>{
+    document.querySelectorAll('.shp.picked').forEach(x=>x.classList.remove('picked'));
+    count();
+  };
+
+  addEventListener('mousedown', e=>{
+    if(e.button !== 0 || e.target.closest(SKIP)) return;
+    dragging = true; moved = false;
+    sx = e.clientX; sy = e.clientY;
+    band.style.cssText =
+      `left:${sx}px;top:${sy}px;width:0;height:0;display:block`;
+    document.body.classList.add('marquee');
+    e.preventDefault();
+  });
+
+  addEventListener('mousemove', e=>{
+    if(!dragging) return;
+    const w = Math.abs(e.clientX - sx), h = Math.abs(e.clientY - sy);
+    if(w > 3 || h > 3) moved = true;
+    band.style.left   = Math.min(sx, e.clientX) + 'px';
+    band.style.top    = Math.min(sy, e.clientY) + 'px';
+    band.style.width  = w + 'px';
+    band.style.height = h + 'px';
+  }, {passive:true});
+
+  addEventListener('mouseup', ()=>{
+    if(!dragging) return;
+    dragging = false;
+    document.body.classList.remove('marquee');
+    const r = band.getBoundingClientRect();
+    band.style.display = 'none';
+    clearPick();
+    if(!moved) return;                      /* a plain click just clears */
+    swallowClick = true;
+    document.querySelectorAll('.shp').forEach(sh=>{
+      const b = sh.getBoundingClientRect();
+      if(!b.width || !b.height) return;
+      if(b.left < r.right && r.left < b.right && b.top < r.bottom && r.top < b.bottom)
+        sh.classList.add('picked');
+    });
+    count();
+  });
+
+  /* click a shape to select just that one */
+  addEventListener('click', e=>{
+    if(swallowClick){ swallowClick = false; return; }
+    const sh = e.target.closest('.shp');
+    if(!sh || sh.classList.contains('link')) return;
+    clearPick();
+    sh.classList.add('picked');
+    count();
+  });
+  addEventListener('keydown', e=>{ if(e.key === 'Escape') clearPick(); });
+})();
+
+/* the "you" tag trails the real cursor and fades when it rests,
+   the same way the runner tags behave while they work */
+(function(){
+  if(!matchMedia('(hover:hover) and (pointer:fine)').matches) return;
+  const tag = document.getElementById('youTag');
+  let hideT = null;
+  addEventListener('mousemove', e=>{
+    tag.style.transform = `translate(${e.clientX + 17}px,${e.clientY + 15}px)`;
+    tag.style.opacity = 1;
+    clearTimeout(hideT);
+    hideT = setTimeout(()=>{ tag.style.opacity = 0; }, 1400);
+  }, {passive:true});
+  addEventListener('mouseleave', ()=>{ tag.style.opacity = 0; });
+})();
+
+layout();
+resetAll();
+</script>
+</body>
 </html>

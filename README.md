@@ -1,167 +1,93 @@
-# David Lo — Portfolio(Vibe it till you make it 🗿🗿🗿)
+# Lỗ Hoàng Tiến Đạt (David) — Portfolio
 
-A cinematic low-poly 3D portfolio for **Lo Hoang Tien Dat (David)** — DevOps / Cloud Engineer. Built with **React + Vite + React Three Fiber** and designed to feel like a short guided flight through a career, not a wall of bullet points.
+A portfolio that draws itself. The page is a **draw.io canvas**, and as you
+scroll, a team of cursors drags out the shapes, types the labels and pulls the
+connectors — nine pages of diagram, built live.
 
-Live site: `https://david-lo.github.io` (once you deploy — see below).
-
----
-
-## What the visitor experiences
-
-Six connected 3D "zones", stitched together by a scroll-driven camera path:
-
-1. **Hero — `boot.sh`** · A dark low-poly server room. A floating 3D vim terminal types out a welcome message. Click-and-drag rotates it.
-2. **About — `whoami`** · A hex platform holding an avatar frame, orbited by three data-rings.
-3. **Education — `origin`** · A **procedural low-poly HUST medal** sitting in an open velvet box. Pointer-hover follows the mouse. Click the medal to flip it. A GPA gauge glows behind. Three floating scholarship certificate cards flank.
-4. **Experience — `landing_zone`** · A central Transit-Gateway hub with two dozen account-nodes orbiting on rings. Three pillars — Germany 🇩🇪, France 🇫🇷, Singapore 🇸🇬 — represent the three customer projects. Hover a pillar → a dossier card pops in.
-5. **Skills — `arsenal`** · A drifting constellation of low-poly icons grouped by category (AWS · Governance · IaC & CI/CD · Containers · Monitoring · Languages · Data). Hover a node to reveal its label.
-6. **Contact — `signal`** · A low-poly satellite dish with a beam of particles rising up. Social icons orbit on two rings. A contact card floats to the right.
-
-Everything runs at any viewport size. Postprocessing (bloom, vignette, subtle chromatic aberration) gives the whole thing a cinematic sheen.
+**Live:** https://dat94-03.github.io/portfolio/
 
 ---
 
-## Quick start
+## The idea
 
-```bash
-# 1. install
-npm install
+I spend my days in draw.io diagramming AWS landing zones, so the portfolio is
+one: grid paper, the diagrams.net default fill/stroke palette, containers with
+caption bars, swimlane-style cards, notes with folded corners, hexagons,
+marching-ants selection outlines, and orthogonal connectors with flow
+animation.
 
-# 2. run in dev
-npm run dev
-# → http://localhost:5173
+Nothing is pre-rendered. Scroll position drives a scheduler, and the scheduler
+drives four concurrent "runners" — cursors named like CI matrix jobs — each
+drawing its own branch of the page. Dependencies are inferred, so a connector
+waits for both shapes it joins, and an independent card never waits for its
+neighbour.
 
-# 3. build
-npm run build
+Two rules shape the whole interaction:
 
-# 4. preview the build locally
-npm run preview
-```
+- **The ink never dries backwards.** Progress is monotonic per page. Scroll
+  back up and finished work stays on the canvas; the cursors disappear because
+  there is nothing left to draw.
+- **One zoom for the document.** Like a real `.drawio` file, every page renders
+  at the same scale — the tightest page's fit — so no page reads bigger than
+  another.
 
----
+## The nine pages
 
-## Adding your images
-
-The site currently uses placeholders (with graceful fallbacks). Drop the real
-files into `public/images/` using these filenames — the site will pick them up
-automatically:
-
-| Slot | Path | Notes |
+| # | Page | |
 |---|---|---|
-| Avatar | `public/images/avatar.png` | Square, at least 512×512. Shows on the About platform. Falls back to a monogram if missing. |
-| HUST medal photo | `public/images/medal-hust.png` | Reference photo — not shown directly (the medal is procedural 3D), used only if you later choose to embed it as a texture. |
-| Scholarship — 2024-2 | `public/images/scholarship-2024-2.png` | Shown behind a certificate frame in the Education scene. |
-| Scholarship — 2025-1 | `public/images/scholarship-2025-1.png` | " |
-| Scholarship — 2025-2 | `public/images/scholarship-2025-2.png` | " |
+| 01 | Title | photo, name, role, stack |
+| 02 | About me | how I work |
+| 03 | Education & certs | HUST · IT2 · K66, Excellent Graduate, AWS SAP + SAA, TOEIC 920, and the paperwork |
+| 04 | FPT Software | the employer, branching to three projects |
+| 05 | Project A | Internal Developer Platform on Backstage (Japan) |
+| 06 | Project B | Enterprise AWS Landing Zone, 1,000+ accounts (Germany) |
+| 07 | Project C | CI/CD governance & DevSecOps (Singapore) |
+| 08 | Toolbox | what I actually use |
+| 09 | Contact | a flowchart that ends in an email address |
 
-All placeholders are wrapped in `onError` handlers, so missing files fall back
-to a stylised gradient — nothing breaks. See `public/images/README.md` for a
-short guide.
+## Things worth clicking
 
----
+- **Drag on empty canvas** — rubber-band select, like the editor. Click a shape
+  to select it alone, `Esc` to clear.
+- **Photo thumbnails** — open a preview dialog with the filename in its title
+  bar. `←` / `→` to step through, `Esc` to close.
+- **Dark mode** — the toggle in the top bar. Every shape has a dark-canvas
+  palette, and the choice survives a reload.
+- **Contact cards** — real links, keyboard reachable.
+- **Replay** — at the bottom. Wipes the board and draws it all again.
 
-## Editing content
+## Built with
 
-All story copy and structured content lives in `src/data/`:
+Nothing. One `index.html`, one `icons.js`, and the images.
 
-- `profile.js` — name, tagline, section titles, terminal typing script, HUST education details.
-- `projects.js` — the three customer projects (Germany / France / Singapore).
-- `skills.js` — grouped tech list; add/remove items and they re-lay-out automatically.
-- `socials.js` — social links. Two entries (GitHub, LinkedIn, Email) already have real URLs from your resume; the rest are `#` — replace them.
-
-Change any field and the site regenerates on next reload — no scene code
-needs to be touched.
-
----
-
-## Deploying to GitHub Pages (user site)
-
-This project targets a **user site** repo — the repo must be named exactly
-`<your-github-username>.github.io` (i.e. `david-lo.github.io`).
-
-1. Create the repo `david-lo/david-lo.github.io` on GitHub (public, empty).
-2. Push this folder as its `main` branch:
-   ```bash
-   cd portfolio
-   git init
-   git add .
-   git commit -m "chore: initial portfolio scaffold"
-   git branch -M main
-   git remote add origin git@github.com:david-lo/david-lo.github.io.git
-   git push -u origin main
-   ```
-3. On GitHub: **Settings → Pages → Build and deployment → Source = `GitHub Actions`**.
-4. That's it — the `.github/workflows/deploy.yml` workflow already in this
-   repo will build & publish every push to `main`.
-
-The site will be live at `https://david-lo.github.io` shortly after the first
-successful workflow run.
-
-### If you'd rather use a project site
-
-Rename the repo (e.g. `dat94-03/portfolio`), then change `base` in
-`vite.config.js` from `'/'` to `'/portfolio/'`. Everything else works the same.
-
----
-
-## Layout of the source
+No framework, no build step, no bundler, no runtime dependency, no network
+request. Brand marks are inlined path data from
+[Simple Icons](https://simpleicons.org) (CC0); logos and photographs are mine.
 
 ```
-portfolio/
-├── .github/workflows/deploy.yml   ← GitHub Actions Pages deploy
-├── index.html                      ← Single HTML shell
-├── vite.config.js
-├── public/
-│   ├── favicon.svg
-│   └── images/                     ← Drop your images here
-└── src/
-    ├── main.jsx                    ← React entry
-    ├── App.jsx                     ← App shell (loader + canvas + overlay)
-    ├── styles.css                  ← Design tokens + all HTML styling
-    ├── data/                       ← All content — edit here
-    │   ├── profile.js
-    │   ├── projects.js
-    │   ├── skills.js
-    │   └── socials.js
-    ├── components/
-    │   ├── Scene.jsx               ← R3F canvas + scroll-driven camera rig
-    │   ├── scenes/                 ← Six section-scenes
-    │   │   ├── HeroTerminal.jsx
-    │   │   ├── AboutPlatform.jsx
-    │   │   ├── EducationMedal.jsx
-    │   │   ├── ExperienceLandingZone.jsx
-    │   │   ├── SkillsConstellation.jsx
-    │   │   └── ContactSignal.jsx
-    │   └── ui/                     ← HTML overlay chrome
-    │       ├── Overlay.jsx
-    │       ├── SocialDock.jsx
-    │       ├── ScrollHint.jsx
-    │       └── Icons.jsx
-    └── three/
-        ├── LowPolyGround.jsx       ← Shared displaced-plate ground
-        ├── Starfield.jsx           ← Ambient star cloud
-        └── PolyMedal.jsx           ← Procedural HUST medal + velvet box
+index.html     the page: styles, the nine pages' data, and the engine
+icons.js       official brand mark path data
+logos/         institution and employer logos
+photos/        gallery images (thumbnail + full for each)
 ```
 
----
+## Running it
 
-## Design notes
+Open `index.html`. That's it — `file://` works, because there is nothing to
+serve.
 
-- **Dark theme.** All backgrounds are deep near-black (`#05070c`) with cool
-  accents (cyan `#4cc9f0`, violet `#9d7cff`) and warm gold (`#f5c86a`) for
-  award/emphasis elements.
-- **Low-poly, everywhere.** No high-poly imported meshes. Everything is
-  procedural — cylinders, octahedrons, extruded shapes, flat-shaded
-  materials. Keeps the bundle tiny and the aesthetic coherent.
-- **Story-shaped copy.** Resume bullets were re-written into active-voice,
-  narrative sentences. The résumé remains the source of truth for facts.
-- **Accessibility.** Semantic top-nav with jump-to-section buttons, alt text
-  on icons, `prefers-reduced-motion` respected by keeping animations subtle
-  (further reductions can be added if you'd like — see notes in `Scene.jsx`).
+## Deploying
 
----
+Pushing to `main` triggers `.github/workflows/deploy.yml`, which uploads the
+repository root to GitHub Pages. No build. Set
+**Settings → Pages → Source = "GitHub Actions"** once.
 
-## License
+## Accessibility and fallbacks
 
-Personal / portfolio use. Fonts (Space Grotesk, JetBrains Mono) served from
-Google Fonts under the SIL Open Font License.
+- `prefers-reduced-motion` — pages render complete instead of animating, and
+  the marching ants, flow arrows and cursor all stand still.
+- **Below 820px wide** (or 560px tall) the page switches renderer: shapes leave
+  absolute positioning and stack into a single column, because scaling a
+  1180px canvas onto a phone would render 14px text at 4px. Cards still draw
+  themselves top-down and labels still type.
+- Contact cards and gallery thumbnails are focusable with visible focus rings.

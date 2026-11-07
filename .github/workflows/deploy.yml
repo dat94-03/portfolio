@@ -1,10 +1,12 @@
 name: Deploy portfolio to GitHub Pages
 
-# Deploys to a *project* site (dat94-03.github.io/portfolio/). The workflow
-# is triggered by a push to `main` and publishes the built `dist/` folder
-# via the official GitHub Pages action. Configure Repository → Settings →
-# Pages → Source = "GitHub Actions" once, and every push after that
-# redeploys automatically.
+# Deploys to a *project* site (dat94-03.github.io/portfolio/). The site is
+# plain static HTML — no framework, no build step — so the repository root is
+# uploaded as-is instead of a compiled `dist/`. Every asset path in index.html
+# is relative, which is what lets it work from a sub-path.
+#
+# Configure Repository → Settings → Pages → Source = "GitHub Actions" once,
+# and every push to `main` redeploys automatically.
 
 on:
   push:
@@ -21,34 +23,22 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: 'npm'
-
-      - name: Install
-        run: npm ci || npm install
-
-      - name: Build
-        run: npm run build
-
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: dist
-
   deploy:
-    needs: build
     runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload site
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'
+
       - name: Deploy
         id: deployment
         uses: actions/deploy-pages@v4

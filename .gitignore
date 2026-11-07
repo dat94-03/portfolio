@@ -1,12 +1,5 @@
-node_modules
-dist
-dist-ssr
-.env
-.env.local
 .DS_Store
 *.log
-.vite
 .idea
 .vscode
 .tmp
-
